@@ -7,6 +7,7 @@
 
   const els = {};
   let editingId = null;
+  let presetSeed = null;  // set when creating from a premade preset
 
   APP.Characters = {
     init({ onOpenCharacter, onListChanged }) {
@@ -41,10 +42,21 @@
       chars.forEach(c => {
         const item = document.createElement('div');
         item.className = 'char-item' + (c.id === activeId ? ' is-active' : '');
-        item.innerHTML =
-          '<div class="char-item__avatar">' + initials(c.name) + '</div>' +
-          '<div><div class="char-item__name"></div>' +
-          '<div class="char-item__meta"></div></div>';
+        const av = document.createElement('div');
+        av.className = 'char-item__avatar';
+        av.textContent = initials(c.name);
+        // Show a generated avatar image, falling back to initials on error.
+        const img = document.createElement('img');
+        img.className = 'char-item__avatarimg';
+        img.alt = '';
+        img.loading = 'lazy';
+        img.onload = () => { av.textContent = ''; av.appendChild(img); };
+        img.onerror = () => {};
+        img.src = APP.Image.avatarUrlFor(c);
+        item.appendChild(av);
+        const info = document.createElement('div');
+        info.innerHTML = '<div class="char-item__name"></div><div class="char-item__meta"></div>';
+        item.appendChild(info);
         item.querySelector('.char-item__name').textContent = c.name || 'Unnamed';
         const mem = APP.Store.getMemory(c.id);
         item.querySelector('.char-item__meta').textContent =
@@ -55,8 +67,24 @@
       });
     },
 
+    // Open the editor prefilled from a premade preset (as a NEW character).
+    openEditorFromPreset(preset) {
+      this.openEditor(null);
+      presetSeed = preset;
+      els.title.textContent = 'New character (from ' + preset.name + ')';
+      els.name.value        = preset.name || '';
+      els.age.value         = preset.age || 21;
+      els.appearance.value  = preset.appearance || '';
+      els.personality.value = preset.personality || '';
+      els.scenario.value    = preset.scenario || '';
+      els.greeting.value    = preset.greeting || '';
+      els.tags.value        = (preset.tags || []).join(', ');
+      els.name.focus();
+    },
+
     openEditor(id) {
       editingId = id || null;
+      presetSeed = null;
       const c = id ? APP.Store.getCharacter(id) : null;
       els.title.textContent = c ? 'Edit ' + c.name : 'New character';
       els.name.value        = c?.name || '';
@@ -83,10 +111,13 @@
       const char = {
         id: editingId || uid(),
         name, age,
+        gender:      existing?.gender || presetSeed?.gender || '',
         appearance:  els.appearance.value.trim(),
         personality: els.personality.value.trim(),
         scenario:    els.scenario.value.trim(),
         greeting:    els.greeting.value.trim(),
+        // Keep the preset's tuned avatar prompt if we started from one.
+        avatarPrompt: existing?.avatarPrompt || presetSeed?.avatarPrompt || '',
         tags: els.tags.value.split(',').map(t => t.trim()).filter(Boolean),
         createdAt: existing?.createdAt || Date.now(),
       };

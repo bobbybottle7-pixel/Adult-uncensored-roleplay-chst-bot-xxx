@@ -36,8 +36,17 @@
     return bits.join(', ');
   };
 
+  // Small stable hash so a given character always gets the same avatar.
+  function hashSeed(str) {
+    let h = 0;
+    for (let i = 0; i < str.length; i++) { h = (h * 31 + str.charCodeAt(i)) | 0; }
+    return Math.abs(h);
+  }
+
   // Return a URL that renders the image for the given prompt.
-  APP.Image.urlFor = function (prompt, seed) {
+  // opts: { seed, width, height }
+  APP.Image.urlFor = function (prompt, opts) {
+    opts = opts || {};
     const s = imgSettings();
     const enc = encodeURIComponent(prompt);
 
@@ -49,12 +58,23 @@
 
     // Pollinations (default, keyless).
     const params = new URLSearchParams({
-      width: s.width,
-      height: s.height,
+      width: opts.width || s.width,
+      height: opts.height || s.height,
       model: s.model || 'flux',
-      seed: String(seed != null ? seed : Math.floor(Math.random() * 1e9)),
+      seed: String(opts.seed != null ? opts.seed : Math.floor(Math.random() * 1e9)),
       nologo: 'true',
     });
     return 'https://image.pollinations.ai/prompt/' + enc + '?' + params.toString();
+  };
+
+  // A consistent square portrait avatar for a character (preset or custom).
+  APP.Image.avatarUrlFor = function (character) {
+    const s = imgSettings();
+    const base = character.avatarPrompt || character.appearance ||
+                 ('portrait of ' + (character.name || 'a person'));
+    const prompt = base + ', upper body portrait, face focus, adult, 18+, ' +
+                   (s.styleSuffix || 'highly detailed');
+    const seed = hashSeed(String(character.id || character.name || base));
+    return APP.Image.urlFor(prompt, { seed, width: 384, height: 384 });
   };
 })();

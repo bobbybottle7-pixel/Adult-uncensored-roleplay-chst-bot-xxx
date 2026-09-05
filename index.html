@@ -41,6 +41,7 @@
       </div>
 
       <button class="btn btn--primary btn--block" id="new-character-btn">+ New character</button>
+      <button class="btn btn--ghost btn--block" id="browse-btn" style="margin-top:8px">✨ Browse premade</button>
 
       <div class="sidebar__section-label">Characters</div>
       <div id="character-list" class="char-list"></div>
@@ -67,6 +68,7 @@
           <h2>Your private roleplay space</h2>
           <p>Create a character to begin, or pick one from the left.</p>
           <button class="btn btn--primary" id="welcome-new-btn">+ Create your first character</button>
+          <button class="btn btn--ghost" id="welcome-browse-btn" style="margin-left:8px">✨ Browse premade</button>
           <p class="welcome__hint" id="welcome-key-hint" hidden>
             ⚠ You haven't added your free AI key yet.
             <button class="linkbtn" id="welcome-open-settings">Add it in Settings →</button>
@@ -127,6 +129,28 @@
         <div class="spacer"></div>
         <button class="btn btn--ghost" id="cf-cancel">Cancel</button>
         <button class="btn btn--primary" id="cf-save">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ GALLERY MODAL ============ -->
+  <div id="gallery-modal" class="modal" hidden>
+    <div class="modal__box modal__box--wide">
+      <div class="modal__head">
+        <h2>Browse premade characters</h2>
+        <button class="icon-btn" id="gallery-close">&times;</button>
+      </div>
+      <div class="gallery__controls">
+        <input type="text" id="gallery-search" placeholder="Search by name, trait, scenario…" />
+        <div id="gallery-tags" class="chips"></div>
+      </div>
+      <div class="modal__body">
+        <p class="hint" style="margin:-4px 0 12px">
+          All characters are original fictional adults (18+). Pick one to copy into
+          your list — you can edit everything before saving. Avatars are generated
+          on first view, so they may take a moment to appear.
+        </p>
+        <div id="gallery-grid" class="gallery__grid"></div>
       </div>
     </div>
   </div>
@@ -204,12 +228,14 @@
   <div id="toast" class="toast" hidden></div>
 
   <script src="js/config.js"></script>
+  <script src="js/presets.js"></script>
   <script src="js/storage.js"></script>
   <script src="js/agegate.js"></script>
   <script src="js/api.js"></script>
   <script src="js/image.js"></script>
   <script src="js/memory.js"></script>
   <script src="js/characters.js"></script>
+  <script src="js/gallery.js"></script>
   <script src="js/chat.js"></script>
   <script src="js/app.js"></script>
 </body>

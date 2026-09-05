@@ -115,6 +115,10 @@
       onOpenCharacter: openCharacter,
       onListChanged: refreshKeyHint,
     });
+    APP.Gallery.init();
+
+    document.getElementById('browse-btn').addEventListener('click', () => APP.Gallery.open());
+    document.getElementById('welcome-browse-btn').addEventListener('click', () => APP.Gallery.open());
 
     // Settings wiring
     document.getElementById('settings-btn').addEventListener('click', openSettings);
