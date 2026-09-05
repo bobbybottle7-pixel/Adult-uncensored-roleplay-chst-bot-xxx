@@ -111,6 +111,7 @@
       const char = {
         id: editingId || uid(),
         name, age,
+        kind:        existing?.kind || presetSeed?.kind || 'roleplay',
         gender:      existing?.gender || presetSeed?.gender || '',
         appearance:  els.appearance.value.trim(),
         personality: els.personality.value.trim(),
