@@ -14,12 +14,12 @@ APP.config = {
    * being capped won't stop your chat. All end in ":free" = no cost.
    * If a model id ever stops existing, it's simply skipped. */
   freeModels: [
-    { id: 'cognitivecomputations/dolphin-mistral-24b-venice-edition:free', label: 'Dolphin Mistral 24B (uncensored, best for RP)' },
-    { id: 'cognitivecomputations/dolphin3.0-mistral-24b:free',            label: 'Dolphin 3.0 Mistral 24B (uncensored)' },
-    { id: 'nousresearch/hermes-3-llama-3.1-405b:free',                    label: 'Hermes 3 405B (steerable, large)' },
-    { id: 'mistralai/mistral-small-3.2-24b-instruct:free',               label: 'Mistral Small 3.2 24B' },
-    { id: 'mistralai/mistral-nemo:free',                                  label: 'Mistral Nemo 12B (fast)' },
-    { id: 'meta-llama/llama-3.3-70b-instruct:free',                       label: 'Llama 3.3 70B' },
+    { id: 'z-ai/glm-5.2:free',                        label: 'GLM 5.2 (capable, permissive — best for RP)' },
+    { id: 'minimax/minimax-m3:free',                  label: 'MiniMax M3 (creative, permissive)' },
+    { id: 'minimax/minimax-m2.7:free',                label: 'MiniMax M2.7' },
+    { id: 'nvidia/nemotron-3-ultra-550b-a55b:free',   label: 'Nemotron 3 Ultra 550B (large)' },
+    { id: 'nvidia/nemotron-3-super-120b-a12b:free',   label: 'Nemotron 3 Super 120B' },
+    { id: 'google/gemma-4-31b-it:free',               label: 'Gemma 4 31B (reliable, more filtered)' },
   ],
 
   defaults: {
