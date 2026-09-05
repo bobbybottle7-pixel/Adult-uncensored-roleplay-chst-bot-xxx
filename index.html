@@ -79,7 +79,9 @@
         <div id="messages" class="messages"></div>
         <form id="composer" class="composer">
           <textarea id="composer-input" class="composer__input" rows="1"
-                    placeholder="Type your message or *action*…"></textarea>
+                    placeholder="Type your message, *action*, or /image a description…"></textarea>
+          <button type="button" class="btn btn--ghost composer__send" id="image-btn"
+                  title="Generate image (uses typed text, or a picture of the character)">🎨</button>
           <button type="submit" class="btn btn--primary composer__send" id="send-btn">Send</button>
         </form>
         <div class="composer__row">
@@ -164,6 +166,29 @@
         </label>
 
         <hr />
+        <div class="setup-guide">
+          <strong>🎨 Images</strong> — default uses <b>Pollinations</b> (free, no key).
+          It's fairly permissive but has some filtering, so very explicit images
+          aren't guaranteed. Pick a model below, or set a custom keyed provider.
+        </div>
+        <label>Image model
+          <select id="set-imgmodel"></select>
+        </label>
+        <label>Image size
+          <select id="set-imgsize">
+            <option value="512">512 × 512 (fastest)</option>
+            <option value="768" selected>768 × 768 (recommended)</option>
+            <option value="1024">1024 × 1024 (slow, best)</option>
+          </select>
+        </label>
+        <label>Custom image endpoint <span class="hint">(advanced, optional — overrides Pollinations)</span>
+          <input type="text" id="set-imgcustom" placeholder="https://provider/gen?prompt={prompt}&key={key}" />
+        </label>
+        <label>Custom image API key <span class="hint">(only if the endpoint above needs one)</span>
+          <input type="password" id="set-imgkey" placeholder="key for {key} above" autocomplete="off" />
+        </label>
+
+        <hr />
         <div class="danger-zone">
           <button class="btn btn--ghost" id="export-data">Export all data</button>
           <button class="btn btn--danger" id="wipe-data">Erase everything</button>
@@ -182,6 +207,7 @@
   <script src="js/storage.js"></script>
   <script src="js/agegate.js"></script>
   <script src="js/api.js"></script>
+  <script src="js/image.js"></script>
   <script src="js/memory.js"></script>
   <script src="js/characters.js"></script>
   <script src="js/chat.js"></script>

@@ -22,6 +22,36 @@
     return div;
   }
 
+  function addImageBubble(prompt, url) {
+    const div = document.createElement('div');
+    div.className = 'msg msg--bot msg--image';
+    const cap = document.createElement('div');
+    cap.className = 'msg__imgcap';
+    cap.innerHTML = '<em>' + esc(prompt) + '</em>';
+    const img = document.createElement('img');
+    img.className = 'msg__img';
+    img.alt = prompt;
+    img.loading = 'lazy';
+    const spinner = document.createElement('div');
+    spinner.className = 'msg__imgloading';
+    spinner.innerHTML = '<span class="msg__typing"><span></span><span></span><span></span></span> generating image…';
+    div.appendChild(spinner);
+    img.onload = () => { spinner.remove(); };
+    img.onerror = () => {
+      spinner.remove();
+      const err = document.createElement('div');
+      err.style.color = 'var(--danger)';
+      err.textContent = '⚠ Image failed or was blocked. Try a different wording or model (Settings).';
+      div.appendChild(err);
+    };
+    img.src = url;
+    div.appendChild(img);
+    div.appendChild(cap);
+    els.messages.appendChild(div);
+    els.messages.scrollTop = els.messages.scrollHeight;
+    return div;
+  }
+
   function typingBubble() {
     const div = document.createElement('div');
     div.className = 'msg msg--bot';
@@ -35,7 +65,9 @@
 
   function buildRequestMessages() {
     const system = APP.Memory.buildSystemPrompt(current);
-    const recent = transcript.slice(-APP.config.recentMessageWindow);
+    const recent = transcript
+      .slice(-APP.config.recentMessageWindow)
+      .map(m => ({ role: m.role, content: m.content })); // strip extras (e.g. image)
     return [{ role: 'system', content: system }, ...recent];
   }
 
@@ -51,6 +83,7 @@
       els.newChat  = document.getElementById('new-chat-btn');
       els.editChar = document.getElementById('edit-char-btn');
       els.regen    = document.getElementById('regen-btn');
+      els.imgBtn   = document.getElementById('image-btn');
 
       els.form.addEventListener('submit', e => { e.preventDefault(); this.send(); });
       els.input.addEventListener('keydown', e => {
@@ -63,6 +96,13 @@
       els.newChat.addEventListener('click', () => this.startNewChat());
       els.editChar.addEventListener('click', () => APP.Characters.openEditor(current.id));
       els.regen.addEventListener('click', () => this.regenerate());
+      els.imgBtn.addEventListener('click', () => {
+        // Use whatever is typed as the image description; empty = character selfie.
+        const desc = els.input.value.trim();
+        els.input.value = '';
+        els.input.style.height = 'auto';
+        this.generateImage(desc);
+      });
     },
 
     open(charId) {
@@ -81,7 +121,10 @@
         transcript = [{ role: 'assistant', content: current.greeting }];
         APP.Store.saveChat(current.id, transcript);
       }
-      transcript.forEach(m => addBubble(m.role, m.content));
+      transcript.forEach(m => {
+        if (m.image) addImageBubble(m.image.prompt, m.image.url);
+        else addBubble(m.role, m.content);
+      });
       setStatus('');
       els.input.focus();
     },
@@ -106,6 +149,15 @@
       if (!APP.API.hasKey()) {
         APP.toast('Add your free AI key in Settings first.');
         APP.openSettings();
+        return;
+      }
+
+      // /image command -> generate a picture instead of a text reply.
+      const imgMatch = text.match(/^\/(?:image|img|pic)\s*(.*)$/i);
+      if (imgMatch) {
+        els.input.value = '';
+        els.input.style.height = 'auto';
+        this.generateImage(imgMatch[1]);
         return;
       }
 
@@ -144,6 +196,17 @@
       } finally {
         busy = false;
       }
+    },
+
+    // Generate an image. If desc is empty, make a "selfie" of the character.
+    generateImage(desc) {
+      if (!current) return;
+      const prompt = APP.Image.buildScenePrompt(current, desc);
+      const url = APP.Image.urlFor(prompt);
+      const entry = { role: 'assistant', content: '*shares a picture*', image: { prompt, url } };
+      transcript.push(entry);
+      addImageBubble(prompt, url);
+      APP.Store.saveChat(current.id, transcript);
     },
 
     async regenerate() {

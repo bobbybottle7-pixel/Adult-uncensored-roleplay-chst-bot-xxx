@@ -36,8 +36,23 @@
     els.setMax.value = s.maxTokens;
     els.setTemp.value = s.temperature;
     els.tempVal.textContent = s.temperature;
+    fillImageSettings(s.image || {});
     updateModelHint();
     els.settingsModal.hidden = false;
+  }
+
+  function fillImageSettings(img) {
+    const sel = els.imgModel;
+    sel.innerHTML = '';
+    APP.config.pollinationsModels.forEach(m => {
+      const o = document.createElement('option');
+      o.value = m.id; o.textContent = m.label;
+      sel.appendChild(o);
+    });
+    sel.value = img.model || APP.config.image.model;
+    els.imgSize.value = String(img.width || APP.config.image.width);
+    els.imgCustom.value = img.customUrlTemplate || '';
+    els.imgKey.value = img.customApiKey || '';
   }
 
   function updateModelHint() {
@@ -52,6 +67,15 @@
     s.model = els.setModel.value;
     s.maxTokens = Math.max(128, Math.min(4096, parseInt(els.setMax.value, 10) || 800));
     s.temperature = parseFloat(els.setTemp.value);
+    const size = parseInt(els.imgSize.value, 10) || 768;
+    s.image = Object.assign({}, s.image, {
+      provider: els.imgCustom.value.trim() ? 'custom' : 'pollinations',
+      model: els.imgModel.value,
+      width: size,
+      height: size,
+      customUrlTemplate: els.imgCustom.value.trim(),
+      customApiKey: els.imgKey.value.trim(),
+    });
     APP.Store.saveSettings(s);
     els.settingsModal.hidden = true;
     APP.toast('Settings saved.');
@@ -81,6 +105,10 @@
     els.setTemp      = document.getElementById('set-temp');
     els.tempVal      = document.getElementById('temp-val');
     els.modelHint    = document.getElementById('model-hint');
+    els.imgModel     = document.getElementById('set-imgmodel');
+    els.imgSize      = document.getElementById('set-imgsize');
+    els.imgCustom    = document.getElementById('set-imgcustom');
+    els.imgKey       = document.getElementById('set-imgkey');
 
     APP.Chat.init();
     APP.Characters.init({

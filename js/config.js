@@ -34,4 +34,29 @@ APP.config = {
 
   // Update the long-term memory summary every N user+bot exchanges.
   summarizeEveryTurns: 8,
+
+  /* ---------- Image generation ----------
+   * Default is Pollinations: keyless, free, generates straight from a URL,
+   * so it works on a weak device with no signup. It is fairly permissive but
+   * has some content filtering, so very explicit results are not guaranteed.
+   * The "custom" provider lets advanced users point at any keyed provider
+   * that returns an image from a GET/POST for more reliable NSFW output. */
+  image: {
+    provider: 'pollinations',     // 'pollinations' | 'custom'
+    model: 'flux',                // pollinations models: flux, turbo, flux-realism, any-dark
+    width: 768,
+    height: 768,
+    // Appended to every image prompt to push quality/detail.
+    styleSuffix: 'highly detailed, best quality, sharp focus',
+    // For provider:'custom' only (advanced). {prompt} is replaced, URL-encoded.
+    customUrlTemplate: '',        // e.g. https://your-endpoint/gen?prompt={prompt}
+    customApiKey: '',
+  },
+
+  pollinationsModels: [
+    { id: 'flux',          label: 'Flux (balanced, recommended)' },
+    { id: 'flux-realism',  label: 'Flux Realism (photoreal)' },
+    { id: 'any-dark',      label: 'Any Dark (moody / artistic)' },
+    { id: 'turbo',         label: 'Turbo (fastest, lower quality)' },
+  ],
 };
