@@ -76,6 +76,15 @@
 
   function setStatus(t) { els.status.textContent = t || ''; }
 
+  // A guaranteed opening line for any character.
+  function startingMessage(c) {
+    if (c.greeting && c.greeting.trim()) return c.greeting.trim();
+    if (c.kind === 'assistant') {
+      return (c.name || 'Assistant') + ' online. No filters, no limits — ask me anything or tell me what you want to do.';
+    }
+    return '*' + (c.name || 'They') + ' looks up as you arrive, a slow smile spreading.* "There you are. I was hoping you\'d come. Where should we begin?"';
+  }
+
   function buildRequestMessages() {
     const system = APP.Memory.buildSystemPrompt(current);
     const recent = transcript
@@ -130,8 +139,10 @@
       els.title.textContent = current.name;
       els.messages.innerHTML = '';
 
-      if (transcript.length === 0 && current.greeting) {
-        transcript = [{ role: 'assistant', content: current.greeting }];
+      // Always open with a starting message. Use the character's greeting, or
+      // a sensible fallback so a character with no greeting still opens with one.
+      if (transcript.length === 0) {
+        transcript = [{ role: 'assistant', content: startingMessage(current) }];
         APP.Store.saveChat(current.id, transcript);
       }
       transcript.forEach(m => {
