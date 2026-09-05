@@ -7,7 +7,8 @@
 
   const els = {};
   let editingId = null;
-  let presetSeed = null;  // set when creating from a premade preset
+  let presetSeed = null;   // set when creating from a premade preset
+  let rerollSeed;          // undefined = no change; number = new avatar seed
 
   APP.Characters = {
     init({ onOpenCharacter, onListChanged }) {
@@ -25,6 +26,19 @@
       els.greeting   = document.getElementById('cf-greeting');
       els.tags       = document.getElementById('cf-tags');
       els.deleteBtn  = document.getElementById('cf-delete');
+      els.avatarImg  = document.getElementById('cf-avatar-img');
+      els.reroll     = document.getElementById('cf-reroll');
+
+      els.reroll.addEventListener('click', () => {
+        rerollSeed = Math.floor(Math.random() * 1e9);
+        this.refreshAvatarPreview();
+      });
+      // Update the preview live as name/appearance change (if not rerolled to a
+      // fixed seed and not using imported art).
+      ['input'].forEach(ev => {
+        els.name.addEventListener(ev, () => this.refreshAvatarPreview());
+        els.appearance.addEventListener(ev, () => this.refreshAvatarPreview());
+      });
 
       document.getElementById('new-character-btn').addEventListener('click', () => this.openEditor());
       document.getElementById('welcome-new-btn').addEventListener('click', () => this.openEditor());
@@ -79,12 +93,32 @@
       els.scenario.value    = preset.scenario || '';
       els.greeting.value    = preset.greeting || '';
       els.tags.value        = (preset.tags || []).join(', ');
+      this.refreshAvatarPreview();
       els.name.focus();
+    },
+
+    // (Re)generate the small avatar preview in the editor.
+    refreshAvatarPreview() {
+      const existing = editingId ? APP.Store.getCharacter(editingId) : null;
+      const temp = {
+        id: editingId || 'preview',
+        name: els.name.value.trim() || 'preview',
+        appearance: els.appearance.value.trim(),
+        avatarPrompt: existing?.avatarPrompt || presetSeed?.avatarPrompt || '',
+      };
+      if (rerollSeed !== undefined) {
+        temp.avatarSeed = rerollSeed;   // fresh generated face
+      } else {
+        temp.avatarImage = existing?.avatarImage || presetSeed?.avatarImage || '';
+        temp.avatarSeed  = existing?.avatarSeed != null ? existing.avatarSeed : presetSeed?.avatarSeed;
+      }
+      els.avatarImg.src = APP.Image.avatarUrlFor(temp);
     },
 
     openEditor(id) {
       editingId = id || null;
       presetSeed = null;
+      rerollSeed = undefined;
       const c = id ? APP.Store.getCharacter(id) : null;
       els.title.textContent = c ? 'Edit ' + c.name : 'New character';
       els.name.value        = c?.name || '';
@@ -95,6 +129,7 @@
       els.greeting.value    = c?.greeting || '';
       els.tags.value        = (c?.tags || []).join(', ');
       els.deleteBtn.hidden  = !c;
+      this.refreshAvatarPreview();
       els.modal.hidden = false;
       els.name.focus();
     },
@@ -121,9 +156,15 @@
         avatarPrompt: existing?.avatarPrompt || presetSeed?.avatarPrompt || '',
         // Imported card artwork (data URL), if any.
         avatarImage: existing?.avatarImage || presetSeed?.avatarImage || '',
+        avatarSeed: existing?.avatarSeed != null ? existing.avatarSeed : presetSeed?.avatarSeed,
         tags: els.tags.value.split(',').map(t => t.trim()).filter(Boolean),
         createdAt: existing?.createdAt || Date.now(),
       };
+      // A reroll picks a fresh generated face and drops any imported art.
+      if (rerollSeed !== undefined) {
+        char.avatarSeed = rerollSeed;
+        char.avatarImage = '';
+      }
       APP.Store.saveCharacter(char);
       this.closeEditor();
       this.renderList(char.id);

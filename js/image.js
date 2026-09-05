@@ -73,9 +73,13 @@
   // ---- Venice keyed POST (uncensored) ----
   async function veniceGenerate(prompt, opts, s) {
     if (!s.veniceKey) throw new Error('Add your Venice API key in Settings.');
+    // Route through the free proxy if configured (fixes browser CORS).
+    const endpoint = s.imageProxyUrl && s.imageProxyUrl.trim()
+      ? s.imageProxyUrl.trim()
+      : 'https://api.venice.ai/api/v1/image/generate';
     let res;
     try {
-      res = await fetch('https://api.venice.ai/api/v1/image/generate', {
+      res = await fetch(endpoint, {
         method: 'POST',
         headers: {
           'Authorization': 'Bearer ' + s.veniceKey,
@@ -94,7 +98,7 @@
         }),
       });
     } catch (e) {
-      throw new Error('Could not reach Venice from the browser (likely CORS). A keyed image API may need a small proxy.');
+      throw new Error('Could not reach the image API from the browser (likely CORS). Set an Image proxy URL in Settings — see proxy/README.md.');
     }
     if (!res.ok) {
       let msg = 'HTTP ' + res.status;
@@ -130,7 +134,10 @@
                  ('portrait of ' + (character.name || 'a person'));
     const prompt = base + ', upper body portrait, face focus, adult, 18+, ' +
                    (s.styleSuffix || 'highly detailed');
-    const seed = hashSeed(String(character.id || character.name || base));
+    // Use an explicit reroll seed if the character has one, else a stable hash.
+    const seed = (character.avatarSeed != null && character.avatarSeed !== '')
+      ? character.avatarSeed
+      : hashSeed(String(character.id || character.name || base));
     // Force pollinations for avatars regardless of the chosen chat provider.
     return pollinationsUrl(prompt, { seed, width: 384, height: 384 },
                            Object.assign({}, s, { model: s.model || 'flux' }));

@@ -58,8 +58,37 @@
     return el;
   }
 
+  function inRow(p, row) {
+    if (row.kind) return p.kind === row.kind;
+    if (row.tags) return (p.tags || []).some(t => row.tags.includes(t));
+    return false;
+  }
+
   function render() {
     els.grid.innerHTML = '';
+    // Featured curated rows when browsing (no search, no tag filter).
+    if (activeTag === 'all' && !query && APP.config.featured) {
+      els.grid.className = 'gallery__rows';
+      APP.config.featured.forEach(row => {
+        let items = APP.presets.filter(p => inRow(p, row));
+        if (row.limit) items = items.slice(0, row.limit);
+        if (!items.length) return;
+        const section = document.createElement('div');
+        section.className = 'grow';
+        const h = document.createElement('div');
+        h.className = 'grow__title';
+        h.textContent = row.title;
+        const track = document.createElement('div');
+        track.className = 'grow__track';
+        items.forEach(p => { const c = card(p); c.classList.add('gcard--row'); track.appendChild(c); });
+        section.appendChild(h);
+        section.appendChild(track);
+        els.grid.appendChild(section);
+      });
+      return;
+    }
+    // Flat grid for search / tag filter.
+    els.grid.className = 'gallery__grid';
     const list = APP.presets.filter(matches);
     if (!list.length) {
       els.grid.innerHTML = '<p class="hint" style="padding:20px">No characters match. Try another search or tag.</p>';

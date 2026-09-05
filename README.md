@@ -69,11 +69,14 @@ In **Settings → Image provider** you can pick:
 
 > **Browser/CORS note:** `<img>`-URL providers (Pollinations, custom GET)
 > always work. A keyed POST API like Venice only works if it allows browser
-> (CORS) requests; if it doesn't, you'll see a clear error and would need a
-> small proxy. Pollinations never needs one.
+> (CORS) requests; if it doesn't, you'll see a clear error. Fix it with the
+> free proxy in **[`proxy/`](proxy/README.md)** (a ~3-minute Cloudflare Worker
+> deploy), then paste its URL into Settings → Image proxy URL. Pollinations
+> never needs one.
 
 Avatars in the gallery/sidebar always use the free keyless path, so browsing
-never spends your paid key.
+never spends your paid key. Editing a character shows an avatar preview with a
+**🎲 Reroll avatar** button to generate a different face.
 
 ## Importing characters from other sites
 

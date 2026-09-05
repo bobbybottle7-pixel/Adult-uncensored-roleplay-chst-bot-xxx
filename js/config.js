@@ -53,10 +53,29 @@ APP.config = {
     veniceKey: '',
     veniceModel: 'venice-sd35',   // uncensored SD3.5; also try 'lustify-sdxl'
 
+    // Optional proxy for keyed POST providers that block browser CORS.
+    // Deploy the free worker in proxy/ and paste its URL here.
+    imageProxyUrl: '',
+
     // Custom GET provider (advanced). {prompt} and {key} are URL-encoded in.
     customUrlTemplate: '',        // e.g. https://your-endpoint/gen?prompt={prompt}&key={key}
     customApiKey: '',
   },
+
+  // Curated rows shown in the gallery when not searching/filtering.
+  // Each row picks characters by kind or tag, in order.
+  featured: [
+    { title: '🤖 AI assistants',     kind: 'assistant' },
+    { title: '🔥 Popular',            tags: ['romance', 'flirty', 'dominant'], limit: 12 },
+    { title: '💕 Romance',            tags: ['romance'] },
+    { title: '😈 Dominant',           tags: ['dominant', 'femdom'] },
+    { title: '🐉 Fantasy',            tags: ['fantasy', 'elf', 'orc', 'dragon', 'witch'] },
+    { title: '👻 Supernatural',       tags: ['supernatural', 'vampire', 'demon', 'monster'] },
+    { title: '🚀 Sci-fi',             tags: ['sci-fi', 'cyberpunk', 'alien', 'android'] },
+    { title: '🏠 Slice of life',      tags: ['slice of life', 'cozy', 'roommate'] },
+    { title: '🎀 Playful & flirty',   tags: ['playful', 'flirty', 'tsundere'] },
+    { title: '💋 Mature',             tags: ['mature', 'milf', 'dilf'] },
+  ],
 
   imageProviders: [
     { id: 'pollinations', label: 'Pollinations (free, no key, some filtering)' },

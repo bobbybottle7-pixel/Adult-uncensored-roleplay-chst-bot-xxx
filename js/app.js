@@ -63,6 +63,7 @@
     els.imgSize.value    = String(img.width || APP.config.image.width);
     els.veniceKey.value  = img.veniceKey || '';
     els.veniceModel.value= img.veniceModel || APP.config.image.veniceModel;
+    els.imgProxy.value   = img.imageProxyUrl || '';
     els.imgCustom.value  = img.customUrlTemplate || '';
     els.imgKey.value     = img.customApiKey || '';
     updateProviderVisibility();
@@ -101,6 +102,7 @@
       height: size,
       veniceKey: els.veniceKey.value.trim(),
       veniceModel: els.veniceModel.value.trim() || 'venice-sd35',
+      imageProxyUrl: els.imgProxy.value.trim(),
       customUrlTemplate: els.imgCustom.value.trim(),
       customApiKey: els.imgKey.value.trim(),
     });
@@ -139,6 +141,7 @@
     els.imgSize      = document.getElementById('set-imgsize');
     els.veniceKey    = document.getElementById('set-venicekey');
     els.veniceModel  = document.getElementById('set-venicemodel');
+    els.imgProxy     = document.getElementById('set-imgproxy');
     els.imgCustom    = document.getElementById('set-imgcustom');
     els.imgKey       = document.getElementById('set-imgkey');
 

@@ -1,0 +1,5 @@
+# Cloudflare Worker config for the image CORS proxy.
+# Deploy with:  npx wrangler deploy   (from inside the proxy/ folder)
+name = "rpchat-image-proxy"
+main = "worker.js"
+compatibility_date = "2024-11-01"

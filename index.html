@@ -103,6 +103,10 @@
         <button class="icon-btn" id="char-modal-close">&times;</button>
       </div>
       <div class="modal__body">
+        <div class="cf-avatar">
+          <div class="cf-avatar__frame"><img id="cf-avatar-img" class="cf-avatar__img" alt="avatar" /></div>
+          <button type="button" class="btn btn--ghost" id="cf-reroll">🎲 Reroll avatar</button>
+        </div>
         <label>Name
           <input type="text" id="cf-name" placeholder="e.g. Aria" maxlength="60" />
         </label>
@@ -254,7 +258,10 @@
           <label>Venice model <span class="hint">(uncensored: venice-sd35, or try lustify-sdxl)</span>
             <input type="text" id="set-venicemodel" placeholder="venice-sd35" />
           </label>
-          <p class="hint">Note: keyed image APIs are called directly from your browser. If Venice blocks that (CORS), you'd need a small proxy — Pollinations always works without one.</p>
+          <label>Image proxy URL <span class="hint">(optional — fixes browser CORS; deploy proxy/ and paste its URL)</span>
+            <input type="text" id="set-imgproxy" placeholder="https://your-worker.workers.dev" />
+          </label>
+          <p class="hint">Keyed image APIs are called from your browser. If Venice blocks that (CORS), deploy the free proxy in <b>proxy/</b> and paste its URL above. Pollinations never needs one.</p>
         </div>
 
         <!-- Custom -->
