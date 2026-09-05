@@ -7,6 +7,36 @@
   let activeTag = 'all';
   let query = '';
 
+  /* Concurrency-limited image loader. Generating avatars on-demand is slow, and
+   * firing a dozen at once over mobile data makes most time out. This loads a
+   * few at a time: when one finishes, the next starts. A new render bumps the
+   * generation so stale jobs from a previous view are dropped. */
+  const ImgLoader = (function () {
+    const MAX = 3;
+    let active = 0, gen = 0;
+    const queue = [];
+    function pump() {
+      while (active < MAX && queue.length) {
+        const job = queue.shift();
+        if (job.gen !== gen) continue;   // from an old view, skip
+        active++;
+        job.run();
+      }
+    }
+    return {
+      reset() { gen++; queue.length = 0; active = 0; },
+      load(img, src, done) {
+        const myGen = gen;
+        queue.push({ gen: myGen, run() {
+          img.onload = () => { active--; done && done(true); pump(); };
+          img.onerror = () => { active--; done && done(false); pump(); };
+          img.src = src;
+        }});
+        pump();
+      },
+    };
+  })();
+
   function allTags() {
     const set = new Set();
     APP.presets.forEach(p => (p.tags || []).forEach(t => set.add(t)));
@@ -37,15 +67,20 @@
     imgWrap.textContent = initials(p.name);
     const img = document.createElement('img');
     img.className = 'gcard__img';
-    img.loading = 'lazy';
     img.alt = p.name;
-    let tries = 0;
-    img.onload = () => { imgWrap.classList.add('is-loaded'); };
-    img.onerror = () => {
-      if (tries++ < 1) { img.src = APP.Image.avatarUrlFor(Object.assign({}, p, { avatarSeed: Math.floor(Math.random() * 1e9) })); }
-    };
-    img.src = APP.Image.avatarUrlFor(p);
     imgWrap.appendChild(img);
+
+    let tries = 0;
+    function attempt() {
+      const src = tries === 0
+        ? APP.Image.avatarUrlFor(p)
+        : APP.Image.avatarUrlFor(Object.assign({}, p, { avatarSeed: Math.floor(Math.random() * 1e9) }));
+      ImgLoader.load(img, src, ok => {
+        if (ok) { imgWrap.classList.add('is-loaded'); }
+        else if (tries++ < 2) { attempt(); }   // retry a couple of times
+      });
+    }
+    attempt();
 
     const body = document.createElement('div');
     body.className = 'gcard__body';
@@ -80,6 +115,7 @@
   }
 
   function render() {
+    ImgLoader.reset();
     els.grid.innerHTML = '';
     // Featured curated rows when browsing (no search, no tag filter).
     if (activeTag === 'all' && !query && APP.config.featured) {
