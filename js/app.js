@@ -42,17 +42,43 @@
   }
 
   function fillImageSettings(img) {
-    const sel = els.imgModel;
-    sel.innerHTML = '';
+    // Provider select
+    els.imgProvider.innerHTML = '';
+    APP.config.imageProviders.forEach(p => {
+      const o = document.createElement('option');
+      o.value = p.id; o.textContent = p.label;
+      els.imgProvider.appendChild(o);
+    });
+    els.imgProvider.value = img.provider || APP.config.image.provider;
+
+    // Pollinations model select
+    els.imgModel.innerHTML = '';
     APP.config.pollinationsModels.forEach(m => {
       const o = document.createElement('option');
       o.value = m.id; o.textContent = m.label;
-      sel.appendChild(o);
+      els.imgModel.appendChild(o);
     });
-    sel.value = img.model || APP.config.image.model;
-    els.imgSize.value = String(img.width || APP.config.image.width);
-    els.imgCustom.value = img.customUrlTemplate || '';
-    els.imgKey.value = img.customApiKey || '';
+    els.imgModel.value = img.model || APP.config.image.model;
+
+    els.imgSize.value    = String(img.width || APP.config.image.width);
+    els.veniceKey.value  = img.veniceKey || '';
+    els.veniceModel.value= img.veniceModel || APP.config.image.veniceModel;
+    els.imgCustom.value  = img.customUrlTemplate || '';
+    els.imgKey.value     = img.customApiKey || '';
+    updateProviderVisibility();
+  }
+
+  function updateProviderVisibility() {
+    const p = els.imgProvider.value;
+    document.querySelectorAll('.prov').forEach(el => { el.hidden = true; });
+    const active = document.querySelector('.prov--' + p);
+    if (active) active.hidden = false;
+    const hints = {
+      pollinations: 'Free, no key, works everywhere. Some content is filtered.',
+      venice: 'Keyed and uncensored. Called directly from your browser.',
+      custom: 'Advanced: any GET image endpoint. Use {prompt} and optional {key}.',
+    };
+    els.imgProviderHint.textContent = hints[p] || '';
   }
 
   function updateModelHint() {
@@ -69,10 +95,12 @@
     s.temperature = parseFloat(els.setTemp.value);
     const size = parseInt(els.imgSize.value, 10) || 768;
     s.image = Object.assign({}, s.image, {
-      provider: els.imgCustom.value.trim() ? 'custom' : 'pollinations',
+      provider: els.imgProvider.value,
       model: els.imgModel.value,
       width: size,
       height: size,
+      veniceKey: els.veniceKey.value.trim(),
+      veniceModel: els.veniceModel.value.trim() || 'venice-sd35',
       customUrlTemplate: els.imgCustom.value.trim(),
       customApiKey: els.imgKey.value.trim(),
     });
@@ -105,8 +133,12 @@
     els.setTemp      = document.getElementById('set-temp');
     els.tempVal      = document.getElementById('temp-val');
     els.modelHint    = document.getElementById('model-hint');
+    els.imgProvider  = document.getElementById('set-imgprovider');
+    els.imgProviderHint = document.getElementById('imgprovider-hint');
     els.imgModel     = document.getElementById('set-imgmodel');
     els.imgSize      = document.getElementById('set-imgsize');
+    els.veniceKey    = document.getElementById('set-venicekey');
+    els.veniceModel  = document.getElementById('set-venicemodel');
     els.imgCustom    = document.getElementById('set-imgcustom');
     els.imgKey       = document.getElementById('set-imgkey');
 
@@ -116,9 +148,11 @@
       onListChanged: refreshKeyHint,
     });
     APP.Gallery.init();
+    APP.Importer.init();
 
     document.getElementById('browse-btn').addEventListener('click', () => APP.Gallery.open());
     document.getElementById('welcome-browse-btn').addEventListener('click', () => APP.Gallery.open());
+    document.getElementById('import-btn').addEventListener('click', () => APP.Importer.open());
 
     // Settings wiring
     document.getElementById('settings-btn').addEventListener('click', openSettings);
@@ -126,6 +160,7 @@
     document.getElementById('settings-save').addEventListener('click', saveSettings);
     document.getElementById('welcome-open-settings').addEventListener('click', openSettings);
     els.setModel.addEventListener('change', updateModelHint);
+    els.imgProvider.addEventListener('change', updateProviderVisibility);
     els.setTemp.addEventListener('input', () => els.tempVal.textContent = els.setTemp.value);
 
     // Data controls

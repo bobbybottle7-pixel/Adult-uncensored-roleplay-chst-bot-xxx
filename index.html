@@ -42,6 +42,7 @@
 
       <button class="btn btn--primary btn--block" id="new-character-btn">+ New character</button>
       <button class="btn btn--ghost btn--block" id="browse-btn" style="margin-top:8px">✨ Browse premade</button>
+      <button class="btn btn--ghost btn--block" id="import-btn" style="margin-top:8px">⬇ Import card</button>
 
       <div class="sidebar__section-label">Characters</div>
       <div id="character-list" class="char-list"></div>
@@ -155,6 +156,35 @@
     </div>
   </div>
 
+  <!-- ============ IMPORT MODAL ============ -->
+  <div id="import-modal" class="modal" hidden>
+    <div class="modal__box">
+      <div class="modal__head">
+        <h2>Import a character card</h2>
+        <button class="icon-btn" id="import-close">&times;</button>
+      </div>
+      <div class="modal__body">
+        <p class="hint" style="margin-top:0">
+          Bring in characters from Chub / CharacterHub, JanitorAI, SpicyChat,
+          SillyTavern, TavernAI and similar sites. On the site, use its
+          <b>Export</b> / <b>Download</b> button to get the character's
+          <b>PNG card</b> or <b>JSON</b>, then drop it here. All imports are
+          treated as fictional adults (18+).
+        </p>
+        <div id="import-drop" class="dropzone">
+          <div>📥 Drop a <b>.png</b> card or <b>.json</b> here</div>
+          <div class="hint">or</div>
+          <label class="btn btn--ghost" for="import-file">Choose a file</label>
+          <input type="file" id="import-file" accept=".png,.json,image/png,application/json" hidden />
+        </div>
+        <label style="margin-top:16px">…or paste character JSON
+          <textarea id="import-paste" rows="5" placeholder='{ "name": "...", "description": "...", "first_mes": "..." }'></textarea>
+        </label>
+        <button class="btn btn--primary btn--block" id="import-paste-btn">Import pasted JSON</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ============ SETTINGS MODAL ============ -->
   <div id="settings-modal" class="modal" hidden>
     <div class="modal__box">
@@ -191,13 +221,16 @@
 
         <hr />
         <div class="setup-guide">
-          <strong>🎨 Images</strong> — default uses <b>Pollinations</b> (free, no key).
-          It's fairly permissive but has some filtering, so very explicit images
-          aren't guaranteed. Pick a model below, or set a custom keyed provider.
+          <strong>🎨 Image generation</strong> — choose where pictures come from.
+          <b>Pollinations</b> is free and needs no key but filters some content.
+          <b>Venice</b> is keyed and uncensored (get a key at
+          <a href="https://venice.ai" target="_blank" rel="noopener">venice.ai</a> → API).
         </div>
-        <label>Image model
-          <select id="set-imgmodel"></select>
+        <label>Image provider
+          <select id="set-imgprovider"></select>
         </label>
+        <p class="hint" id="imgprovider-hint"></p>
+
         <label>Image size
           <select id="set-imgsize">
             <option value="512">512 × 512 (fastest)</option>
@@ -205,12 +238,34 @@
             <option value="1024">1024 × 1024 (slow, best)</option>
           </select>
         </label>
-        <label>Custom image endpoint <span class="hint">(advanced, optional — overrides Pollinations)</span>
-          <input type="text" id="set-imgcustom" placeholder="https://provider/gen?prompt={prompt}&key={key}" />
-        </label>
-        <label>Custom image API key <span class="hint">(only if the endpoint above needs one)</span>
-          <input type="password" id="set-imgkey" placeholder="key for {key} above" autocomplete="off" />
-        </label>
+
+        <!-- Pollinations -->
+        <div class="prov prov--pollinations">
+          <label>Pollinations model
+            <select id="set-imgmodel"></select>
+          </label>
+        </div>
+
+        <!-- Venice -->
+        <div class="prov prov--venice" hidden>
+          <label>Venice API key
+            <input type="password" id="set-venicekey" placeholder="paste your Venice key" autocomplete="off" />
+          </label>
+          <label>Venice model <span class="hint">(uncensored: venice-sd35, or try lustify-sdxl)</span>
+            <input type="text" id="set-venicemodel" placeholder="venice-sd35" />
+          </label>
+          <p class="hint">Note: keyed image APIs are called directly from your browser. If Venice blocks that (CORS), you'd need a small proxy — Pollinations always works without one.</p>
+        </div>
+
+        <!-- Custom -->
+        <div class="prov prov--custom" hidden>
+          <label>Custom image endpoint <span class="hint">(GET URL; {prompt} and {key} are filled in)</span>
+            <input type="text" id="set-imgcustom" placeholder="https://provider/gen?prompt={prompt}&key={key}" />
+          </label>
+          <label>Custom API key <span class="hint">(only if the endpoint uses {key})</span>
+            <input type="password" id="set-imgkey" placeholder="key for {key} above" autocomplete="off" />
+          </label>
+        </div>
 
         <hr />
         <div class="danger-zone">
@@ -236,6 +291,7 @@
   <script src="js/memory.js"></script>
   <script src="js/characters.js"></script>
   <script src="js/gallery.js"></script>
+  <script src="js/importer.js"></script>
   <script src="js/chat.js"></script>
   <script src="js/app.js"></script>
 </body>

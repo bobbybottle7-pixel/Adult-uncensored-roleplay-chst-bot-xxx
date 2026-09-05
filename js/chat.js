@@ -22,34 +22,47 @@
     return div;
   }
 
-  function addImageBubble(prompt, url) {
+  // Create an image bubble shell (spinner). Returns handles to fill later.
+  function addImageShell(prompt) {
     const div = document.createElement('div');
     div.className = 'msg msg--bot msg--image';
-    const cap = document.createElement('div');
-    cap.className = 'msg__imgcap';
-    cap.innerHTML = '<em>' + esc(prompt) + '</em>';
-    const img = document.createElement('img');
-    img.className = 'msg__img';
-    img.alt = prompt;
-    img.loading = 'lazy';
     const spinner = document.createElement('div');
     spinner.className = 'msg__imgloading';
     spinner.innerHTML = '<span class="msg__typing"><span></span><span></span><span></span></span> generating image…';
     div.appendChild(spinner);
-    img.onload = () => { spinner.remove(); };
-    img.onerror = () => {
+    els.messages.appendChild(div);
+    els.messages.scrollTop = els.messages.scrollHeight;
+
+    function fail(text) {
       spinner.remove();
       const err = document.createElement('div');
       err.style.color = 'var(--danger)';
-      err.textContent = '⚠ Image failed or was blocked. Try a different wording or model (Settings).';
+      err.textContent = '⚠ ' + text;
       div.appendChild(err);
-    };
-    img.src = url;
-    div.appendChild(img);
-    div.appendChild(cap);
-    els.messages.appendChild(div);
-    els.messages.scrollTop = els.messages.scrollHeight;
-    return div;
+    }
+    function setSrc(src) {
+      const img = document.createElement('img');
+      img.className = 'msg__img';
+      img.alt = prompt;
+      img.loading = 'lazy';
+      img.onload = () => { spinner.remove(); };
+      img.onerror = () => fail('Image failed or was blocked. Try different wording or another model/provider (Settings).');
+      img.src = src;
+      const cap = document.createElement('div');
+      cap.className = 'msg__imgcap';
+      cap.innerHTML = '<em>' + esc(prompt) + '</em>';
+      div.appendChild(img);
+      div.appendChild(cap);
+      els.messages.scrollTop = els.messages.scrollHeight;
+    }
+    return { div, setSrc, fail };
+  }
+
+  // Render an already-generated image (from a saved transcript entry).
+  function addImageBubble(prompt, src) {
+    const shell = addImageShell(prompt);
+    shell.setSrc(src);
+    return shell.div;
   }
 
   function typingBubble() {
@@ -199,14 +212,18 @@
     },
 
     // Generate an image. If desc is empty, make a "selfie" of the character.
-    generateImage(desc) {
+    async generateImage(desc) {
       if (!current) return;
       const prompt = APP.Image.buildScenePrompt(current, desc);
-      const url = APP.Image.urlFor(prompt);
-      const entry = { role: 'assistant', content: '*shares a picture*', image: { prompt, url } };
-      transcript.push(entry);
-      addImageBubble(prompt, url);
-      APP.Store.saveChat(current.id, transcript);
+      const shell = addImageShell(prompt);
+      try {
+        const { src } = await APP.Image.generate({ prompt });
+        shell.setSrc(src);
+        transcript.push({ role: 'assistant', content: '*shares a picture*', image: { prompt, url: src } });
+        APP.Store.saveChat(current.id, transcript);
+      } catch (err) {
+        shell.fail(err.message || 'Image generation failed.');
+      }
     },
 
     async regenerate() {

@@ -118,6 +118,8 @@
         greeting:    els.greeting.value.trim(),
         // Keep the preset's tuned avatar prompt if we started from one.
         avatarPrompt: existing?.avatarPrompt || presetSeed?.avatarPrompt || '',
+        // Imported card artwork (data URL), if any.
+        avatarImage: existing?.avatarImage || presetSeed?.avatarImage || '',
         tags: els.tags.value.split(',').map(t => t.trim()).filter(Boolean),
         createdAt: existing?.createdAt || Date.now(),
       };

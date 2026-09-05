@@ -55,6 +55,38 @@ Tips if you still hit limits:
 
 ---
 
+## Image generation providers
+
+In **Settings → Image provider** you can pick:
+
+- **Pollinations** (default) — free, no key, works everywhere. Filters some
+  content, so very explicit images aren't guaranteed.
+- **Venice** — keyed and **uncensored**. Get a key at
+  [venice.ai](https://venice.ai) → API, paste it in, and images are generated
+  with `safe_mode: false`. Default model `venice-sd35` (try `lustify-sdxl`).
+- **Custom endpoint** — any image URL that returns a picture from a `GET`,
+  using `{prompt}` and optional `{key}` placeholders.
+
+> **Browser/CORS note:** `<img>`-URL providers (Pollinations, custom GET)
+> always work. A keyed POST API like Venice only works if it allows browser
+> (CORS) requests; if it doesn't, you'll see a clear error and would need a
+> small proxy. Pollinations never needs one.
+
+Avatars in the gallery/sidebar always use the free keyless path, so browsing
+never spends your paid key.
+
+## Importing characters from other sites
+
+**Sidebar → ⬇ Import card.** The popular character sites (Chub / CharacterHub,
+JanitorAI, SpicyChat, SillyTavern, TavernAI, Risu…) all share the same
+portable **character-card** format. On the site, use its **Export / Download**
+button to get the character's **PNG card** or **JSON**, then drop it in — or
+paste the JSON directly. The card's own artwork becomes the avatar.
+
+Everything imported is treated as a fictional adult (18+) and runs under the
+app's safety baseline. Import cards you have the right to use; this app doesn't
+redistribute other people's characters — it just opens the ones you bring.
+
 ## Long-term memory
 
 Memory is stored **per character**, separate from the chat messages:
@@ -93,6 +125,9 @@ Your key is stored in each visitor's own browser, never in the code.
 | `index.html` | Page structure: age gate, app, modals |
 | `css/style.css` | All styling (dark theme, mobile-friendly) |
 | `js/config.js` | Model list + defaults — **edit models here** |
+| `js/presets.js` | Premade character library (original characters) |
+| `js/gallery.js` | Browse-premade gallery UI |
+| `js/importer.js` | Character-card import (PNG/JSON from other sites) |
 | `js/storage.js` | localStorage (characters, chats, memory, settings) |
 | `js/agegate.js` | 18+ gate |
 | `js/api.js` | Model adapter with automatic fallback |

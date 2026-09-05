@@ -42,16 +42,27 @@ APP.config = {
    * The "custom" provider lets advanced users point at any keyed provider
    * that returns an image from a GET/POST for more reliable NSFW output. */
   image: {
-    provider: 'pollinations',     // 'pollinations' | 'custom'
-    model: 'flux',                // pollinations models: flux, turbo, flux-realism, any-dark
+    provider: 'pollinations',     // 'pollinations' | 'venice' | 'custom'
+    model: 'flux',                // pollinations model
     width: 768,
     height: 768,
     // Appended to every image prompt to push quality/detail.
     styleSuffix: 'highly detailed, best quality, sharp focus',
-    // For provider:'custom' only (advanced). {prompt} is replaced, URL-encoded.
-    customUrlTemplate: '',        // e.g. https://your-endpoint/gen?prompt={prompt}
+
+    // Venice (keyed, uncensored). Get a key at venice.ai -> API.
+    veniceKey: '',
+    veniceModel: 'venice-sd35',   // uncensored SD3.5; also try 'lustify-sdxl'
+
+    // Custom GET provider (advanced). {prompt} and {key} are URL-encoded in.
+    customUrlTemplate: '',        // e.g. https://your-endpoint/gen?prompt={prompt}&key={key}
     customApiKey: '',
   },
+
+  imageProviders: [
+    { id: 'pollinations', label: 'Pollinations (free, no key, some filtering)' },
+    { id: 'venice',       label: 'Venice (keyed, uncensored)' },
+    { id: 'custom',       label: 'Custom endpoint (advanced)' },
+  ],
 
   pollinationsModels: [
     { id: 'flux',          label: 'Flux (balanced, recommended)' },
