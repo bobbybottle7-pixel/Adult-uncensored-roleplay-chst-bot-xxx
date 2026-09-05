@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Roleplay Chat</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <!-- ============ AGE GATE ============ -->
+  <div id="age-gate" class="age-gate" hidden>
+    <div class="age-gate__box">
+      <div class="age-gate__badge">18+</div>
+      <h1>Adults only</h1>
+      <p>This site contains fictional adult (18+) roleplay and sexually explicit
+         content. All characters are fictional and depicted as adults aged 18 or
+         older. By entering you confirm that:</p>
+      <ul>
+        <li>You are at least 18 years old (or the age of majority where you live).</li>
+        <li>Adult content is legal to view where you are.</li>
+        <li>You are entering voluntarily and won't share this with minors.</li>
+      </ul>
+      <div class="age-gate__actions">
+        <button id="age-confirm" class="btn btn--primary">I am 18 or older — Enter</button>
+        <a href="https://www.google.com" class="btn btn--ghost">Leave</a>
+      </div>
+      <p class="age-gate__fine">Your confirmation is stored only in this browser.</p>
+    </div>
+  </div>
+
+  <!-- ============ MAIN APP ============ -->
+  <div id="app" class="app" hidden>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar__head">
+        <span class="brand">Roleplay</span>
+        <button class="icon-btn" id="sidebar-close" title="Close">&times;</button>
+      </div>
+
+      <button class="btn btn--primary btn--block" id="new-character-btn">+ New character</button>
+
+      <div class="sidebar__section-label">Characters</div>
+      <div id="character-list" class="char-list"></div>
+
+      <div class="sidebar__foot">
+        <button class="btn btn--ghost btn--block" id="settings-btn">⚙ Settings</button>
+      </div>
+    </aside>
+
+    <!-- Main panel -->
+    <main class="main">
+      <header class="topbar">
+        <button class="icon-btn" id="sidebar-open" title="Menu">☰</button>
+        <div class="topbar__title" id="topbar-title">Select a character</div>
+        <div class="topbar__actions">
+          <button class="icon-btn" id="new-chat-btn" title="New chat (keeps memory)" hidden>New chat</button>
+          <button class="icon-btn" id="edit-char-btn" title="Edit character" hidden>Edit</button>
+        </div>
+      </header>
+
+      <!-- Empty / welcome state -->
+      <section id="welcome" class="welcome">
+        <div class="welcome__inner">
+          <h2>Your private roleplay space</h2>
+          <p>Create a character to begin, or pick one from the left.</p>
+          <button class="btn btn--primary" id="welcome-new-btn">+ Create your first character</button>
+          <p class="welcome__hint" id="welcome-key-hint" hidden>
+            ⚠ You haven't added your free AI key yet.
+            <button class="linkbtn" id="welcome-open-settings">Add it in Settings →</button>
+          </p>
+        </div>
+      </section>
+
+      <!-- Chat -->
+      <section id="chat" class="chat" hidden>
+        <div id="messages" class="messages"></div>
+        <form id="composer" class="composer">
+          <textarea id="composer-input" class="composer__input" rows="1"
+                    placeholder="Type your message or *action*…"></textarea>
+          <button type="submit" class="btn btn--primary composer__send" id="send-btn">Send</button>
+        </form>
+        <div class="composer__row">
+          <button class="linkbtn" id="regen-btn" type="button">↻ Regenerate</button>
+          <span class="composer__status" id="chat-status"></span>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- ============ CHARACTER EDITOR MODAL ============ -->
+  <div id="char-modal" class="modal" hidden>
+    <div class="modal__box">
+      <div class="modal__head">
+        <h2 id="char-modal-title">New character</h2>
+        <button class="icon-btn" id="char-modal-close">&times;</button>
+      </div>
+      <div class="modal__body">
+        <label>Name
+          <input type="text" id="cf-name" placeholder="e.g. Aria" maxlength="60" />
+        </label>
+        <label>Age <span class="hint">(must be 18+)</span>
+          <input type="number" id="cf-age" min="18" max="999" value="21" />
+        </label>
+        <label>Short description / appearance
+          <textarea id="cf-appearance" rows="2" placeholder="Looks, vibe, style…"></textarea>
+        </label>
+        <label>Personality
+          <textarea id="cf-personality" rows="3" placeholder="Traits, likes, quirks, how they speak…"></textarea>
+        </label>
+        <label>Scenario / setting
+          <textarea id="cf-scenario" rows="3" placeholder="Where you are, your relationship, what's happening…"></textarea>
+        </label>
+        <label>First message (greeting)
+          <textarea id="cf-greeting" rows="3" placeholder="What the character says first…"></textarea>
+        </label>
+        <label>Tags <span class="hint">(comma separated)</span>
+          <input type="text" id="cf-tags" placeholder="e.g. romance, fantasy" />
+        </label>
+      </div>
+      <div class="modal__foot">
+        <button class="btn btn--danger" id="cf-delete" hidden>Delete</button>
+        <div class="spacer"></div>
+        <button class="btn btn--ghost" id="cf-cancel">Cancel</button>
+        <button class="btn btn--primary" id="cf-save">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ SETTINGS MODAL ============ -->
+  <div id="settings-modal" class="modal" hidden>
+    <div class="modal__box">
+      <div class="modal__head">
+        <h2>Settings</h2>
+        <button class="icon-btn" id="settings-modal-close">&times;</button>
+      </div>
+      <div class="modal__body">
+        <div class="setup-guide">
+          <strong>Get your free AI key (2 min, no credit card):</strong>
+          <ol>
+            <li>Open <a href="https://openrouter.ai" target="_blank" rel="noopener">openrouter.ai</a> and sign in.</li>
+            <li>Go to <b>Keys</b> → <b>Create Key</b> → copy it.</li>
+            <li>Paste it below. It's saved only in this browser.</li>
+          </ol>
+        </div>
+
+        <label>OpenRouter API key
+          <input type="password" id="set-key" placeholder="sk-or-..." autocomplete="off" />
+        </label>
+
+        <label>Model
+          <select id="set-model"></select>
+        </label>
+        <p class="hint" id="model-hint"></p>
+
+        <label>Response length (max tokens)
+          <input type="number" id="set-maxtokens" min="128" max="4096" step="64" value="800" />
+        </label>
+
+        <label>Creativity (temperature): <span id="temp-val">0.9</span>
+          <input type="range" id="set-temp" min="0" max="1.5" step="0.05" value="0.9" />
+        </label>
+
+        <hr />
+        <div class="danger-zone">
+          <button class="btn btn--ghost" id="export-data">Export all data</button>
+          <button class="btn btn--danger" id="wipe-data">Erase everything</button>
+        </div>
+      </div>
+      <div class="modal__foot">
+        <div class="spacer"></div>
+        <button class="btn btn--primary" id="settings-save">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast" hidden></div>
+
+  <script src="js/config.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/agegate.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/memory.js"></script>
+  <script src="js/characters.js"></script>
+  <script src="js/chat.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
