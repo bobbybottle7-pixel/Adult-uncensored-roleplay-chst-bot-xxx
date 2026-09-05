@@ -22,15 +22,30 @@
     return hay.split(query).length > 1; // substring match
   }
 
+  function initials(name) {
+    return (name || '?').trim().split(/\s+/).map(w => w[0]).slice(0, 2).join('').toUpperCase();
+  }
+
   function card(p) {
     const el = document.createElement('div');
     el.className = 'gcard';
+
+    // Image area with an initials placeholder shown until (and unless) the
+    // generated picture loads. One automatic retry with a fresh seed.
+    const imgWrap = document.createElement('div');
+    imgWrap.className = 'gcard__imgwrap';
+    imgWrap.textContent = initials(p.name);
     const img = document.createElement('img');
     img.className = 'gcard__img';
     img.loading = 'lazy';
     img.alt = p.name;
+    let tries = 0;
+    img.onload = () => { imgWrap.classList.add('is-loaded'); };
+    img.onerror = () => {
+      if (tries++ < 1) { img.src = APP.Image.avatarUrlFor(Object.assign({}, p, { avatarSeed: Math.floor(Math.random() * 1e9) })); }
+    };
     img.src = APP.Image.avatarUrlFor(p);
-    img.onerror = () => { img.style.display = 'none'; };
+    imgWrap.appendChild(img);
 
     const body = document.createElement('div');
     body.className = 'gcard__body';
@@ -52,7 +67,7 @@
       APP.Characters.openEditorFromPreset(p);
     });
 
-    el.appendChild(img);
+    el.appendChild(imgWrap);
     el.appendChild(body);
     el.appendChild(use);
     return el;
@@ -71,7 +86,7 @@
       els.grid.className = 'gallery__rows';
       APP.config.featured.forEach(row => {
         let items = APP.presets.filter(p => inRow(p, row));
-        if (row.limit) items = items.slice(0, row.limit);
+        items = items.slice(0, row.limit || 12);  // cap so mobile isn't flooded
         if (!items.length) return;
         const section = document.createElement('div');
         section.className = 'grow';

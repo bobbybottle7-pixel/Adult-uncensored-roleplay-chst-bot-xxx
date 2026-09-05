@@ -142,8 +142,9 @@
     const seed = (character.avatarSeed != null && character.avatarSeed !== '')
       ? character.avatarSeed
       : hashSeed(String(character.id || character.name || base));
-    // Force pollinations for avatars regardless of the chosen chat provider.
+    // Force pollinations for avatars, and use the fast 'turbo' model — on
+    // mobile, generating many avatars must be quick or they time out.
     return pollinationsUrl(prompt, { seed, width: 384, height: 384 },
-                           Object.assign({}, s, { model: s.model || 'flux' }));
+                           Object.assign({}, s, { model: 'turbo' }));
   };
 })();
