@@ -126,9 +126,17 @@
 
   // Avatars: always keyless GET so browsing dozens of cards is cheap and never
   // spends a paid key. Uses a stable seed so a character keeps the same face.
+  APP.Image.slug = function (name) {
+    return String(name || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  };
+
   APP.Image.avatarUrlFor = function (character) {
     // Imported PNG cards carry their own artwork — use it directly.
     if (character.avatarImage) return character.avatarImage;
+    // Pre-generated preset avatar file (fast, reliable), unless rerolled.
+    if (character.avatarFile && (character.avatarSeed == null || character.avatarSeed === '')) {
+      return character.avatarFile;
+    }
     const s = imgSettings();
     const base = character.avatarPrompt || character.appearance ||
                  ('portrait of ' + (character.name || 'a person'));

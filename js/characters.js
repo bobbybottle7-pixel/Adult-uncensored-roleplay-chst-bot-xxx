@@ -157,6 +157,9 @@
         // Imported card artwork (data URL), if any.
         avatarImage: existing?.avatarImage || presetSeed?.avatarImage || '',
         avatarSeed: existing?.avatarSeed != null ? existing.avatarSeed : presetSeed?.avatarSeed,
+        // Pre-generated preset avatar file, so saved presets show instantly too.
+        avatarFile: existing?.avatarFile ||
+          (presetSeed ? 'img/avatars/' + APP.Image.slug(presetSeed.name) + '.jpg' : ''),
         tags: els.tags.value.split(',').map(t => t.trim()).filter(Boolean),
         createdAt: existing?.createdAt || Date.now(),
       };
@@ -164,6 +167,7 @@
       if (rerollSeed !== undefined) {
         char.avatarSeed = rerollSeed;
         char.avatarImage = '';
+        char.avatarFile = '';
       }
       APP.Store.saveCharacter(char);
       this.closeEditor();

@@ -70,14 +70,18 @@
     img.alt = p.name;
     imgWrap.appendChild(img);
 
+    // 1st try: the pre-generated file shipped in the repo (instant, reliable).
+    // If missing, fall back to generating live, retrying with a fresh seed.
+    const localFile = 'img/avatars/' + APP.Image.slug(p.name) + '.jpg';
     let tries = 0;
     function attempt() {
-      const src = tries === 0
-        ? APP.Image.avatarUrlFor(p)
-        : APP.Image.avatarUrlFor(Object.assign({}, p, { avatarSeed: Math.floor(Math.random() * 1e9) }));
+      let src;
+      if (tries === 0) src = localFile;
+      else if (tries === 1) src = APP.Image.avatarUrlFor(p);
+      else src = APP.Image.avatarUrlFor(Object.assign({}, p, { avatarSeed: Math.floor(Math.random() * 1e9) }));
       ImgLoader.load(img, src, ok => {
         if (ok) { imgWrap.classList.add('is-loaded'); }
-        else if (tries++ < 2) { attempt(); }   // retry a couple of times
+        else if (tries++ < 3) { attempt(); }
       });
     }
     attempt();
