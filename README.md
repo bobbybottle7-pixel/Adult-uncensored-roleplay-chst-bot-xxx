@@ -90,6 +90,34 @@ Everything imported is treated as a fictional adult (18+) and runs under the
 app's safety baseline. Import cards you have the right to use; this app doesn't
 redistribute other people's characters — it just opens the ones you bring.
 
+## Advanced chat features
+
+- **Streaming replies** — text appears as it's written instead of all at once.
+  The **Send** button becomes **Stop** so you can cut a reply short.
+- **Swipes** — tap **↻** and you get another version of the same reply. Old
+  versions are kept: swipe between them with **‹ 2/3 ›**.
+- **Continue (⏩)** — a reply stopped too early? Extend it seamlessly.
+- **Edit any message** — tap **✎** on yours *or* theirs to rewrite it, then
+  carry on. Also **⧉** copy and **🗑** delete per message.
+- **Multiple scenes per character (💬)** — keep several separate chats with the
+  same character. Each has its own messages; memory is shared, so they know you
+  in all of them. Rename or delete any scene.
+- **Memory editor (🧠)** — see and hand-edit exactly what a character remembers,
+  including pinned facts that are always included. Or make them forget.
+- **Your persona** — Settings lets you say who *you* are (name + description),
+  and every character will know it.
+- **Read aloud** — replies can be spoken using your device's built-in voices.
+  Free, offline, with voice and speed pickers. Tap 🔊 on any message.
+- **Backup & restore** — export everything to a file, restore it later.
+
+### Slash commands
+
+| Command | What it does |
+|---------|--------------|
+| `/image a description` | Generate a picture (also `/img`, `/pic`) |
+| `/remember something` | Pin a fact the character always remembers |
+| `/continue` | Extend the last reply |
+
 ## Long-term memory
 
 Memory is stored **per character**, separate from the chat messages:
@@ -131,6 +159,9 @@ Your key is stored in each visitor's own browser, never in the code.
 | `js/presets.js` | Premade character library (original characters) |
 | `js/gallery.js` | Browse-premade gallery UI |
 | `js/importer.js` | Character-card import (PNG/JSON from other sites) |
+| `js/sessions.js` | Multiple chat scenes per character |
+| `js/memoryui.js` | Memory editor |
+| `js/tts.js` | Read-aloud (text to speech) |
 | `js/storage.js` | localStorage (characters, chats, memory, settings) |
 | `js/agegate.js` | 18+ gate |
 | `js/api.js` | Model adapter with automatic fallback |

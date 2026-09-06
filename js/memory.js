@@ -57,6 +57,15 @@
         parts.push(SAFETY, '', personaBlock(character));
       }
 
+      // Who the user is, if they've set up a persona.
+      const you = APP.Store.getPersona();
+      if (you.enabled && (you.name || you.description)) {
+        const bits = [];
+        if (you.name) bits.push('They are called ' + you.name + '.');
+        if (you.description) bits.push(you.description);
+        parts.push('', 'About the person you are talking to: ' + bits.join(' '));
+      }
+
       if (mem.facts && mem.facts.length) {
         parts.push('', 'Remembered facts:');
         mem.facts.forEach(f => parts.push('- ' + f));
@@ -72,7 +81,20 @@
       return parts.join('\n');
     },
 
-    // Add a pinned fact manually (used by /remember or future UI).
+    // Replace the whole memory (used by the memory editor).
+    setMemory(charId, summary, facts) {
+      const mem = APP.Store.getMemory(charId);
+      mem.summary = String(summary || '').trim();
+      mem.facts = (facts || []).map(f => String(f).trim()).filter(Boolean);
+      APP.Store.saveMemory(charId, mem);
+    },
+
+    // Wipe everything a character remembers.
+    forget(charId) {
+      APP.Store.saveMemory(charId, { summary: '', facts: [], updatedTurns: 0 });
+    },
+
+    // Add a pinned fact manually (used by /remember and the memory editor).
     addFact(charId, fact) {
       const mem = APP.Store.getMemory(charId);
       mem.facts = mem.facts || [];

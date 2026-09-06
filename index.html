@@ -58,7 +58,9 @@
         <button class="icon-btn" id="sidebar-open" title="Menu">☰</button>
         <div class="topbar__title" id="topbar-title">Select a character</div>
         <div class="topbar__actions">
-          <button class="icon-btn" id="new-chat-btn" title="New chat (keeps memory)" hidden>New chat</button>
+          <button class="icon-btn" id="chats-btn" title="All chats with this character" hidden>💬</button>
+          <button class="icon-btn" id="memory-btn" title="What they remember" hidden>🧠</button>
+          <button class="icon-btn" id="new-chat-btn" title="New scene (keeps memory)" hidden>New</button>
           <button class="icon-btn" id="edit-char-btn" title="Edit character" hidden>Edit</button>
         </div>
       </header>
@@ -82,7 +84,7 @@
         <div id="messages" class="messages"></div>
         <form id="composer" class="composer">
           <textarea id="composer-input" class="composer__input" rows="1"
-                    placeholder="Type your message, *action*, or /image a description…"></textarea>
+                    placeholder="Message, *action*, /image …, /remember …, /continue"></textarea>
           <button type="button" class="btn btn--ghost composer__send" id="image-btn"
                   title="Generate image (uses typed text, or a picture of the character)">🎨</button>
           <button type="submit" class="btn btn--primary composer__send" id="send-btn">Send</button>
@@ -189,6 +191,49 @@
     </div>
   </div>
 
+  <!-- ============ SESSIONS MODAL ============ -->
+  <div id="sessions-modal" class="modal" hidden>
+    <div class="modal__box">
+      <div class="modal__head">
+        <h2 id="sessions-title">Chats</h2>
+        <button class="icon-btn" id="sessions-close">&times;</button>
+      </div>
+      <div class="modal__body">
+        <p class="hint" style="margin-top:0">Keep several separate scenes with the same character.
+          Each has its own messages, and they remember you in all of them.</p>
+        <div id="sessions-list" class="slist"></div>
+      </div>
+      <div class="modal__foot">
+        <button class="btn btn--primary btn--block" id="sessions-new">+ New scene</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ MEMORY MODAL ============ -->
+  <div id="memory-modal" class="modal" hidden>
+    <div class="modal__box">
+      <div class="modal__head">
+        <h2 id="memory-title">Memory</h2>
+        <button class="icon-btn" id="memory-close">&times;</button>
+      </div>
+      <div class="modal__body">
+        <p class="hint" style="margin-top:0">This is what the character carries into every new chat.
+          Edit it freely — anything you write here they will treat as true.</p>
+        <label>Story so far <span class="hint">(auto-written every few turns)</span>
+          <textarea id="memory-summary" rows="6" placeholder="Nothing remembered yet…"></textarea>
+        </label>
+        <label>Pinned facts <span class="hint">(one per line — always remembered)</span>
+          <textarea id="memory-facts" rows="5" placeholder="e.g. My name is Alex&#10;I like being called sir"></textarea>
+        </label>
+      </div>
+      <div class="modal__foot">
+        <button class="btn btn--danger" id="memory-forget">Forget all</button>
+        <div class="spacer"></div>
+        <button class="btn btn--primary" id="memory-save">Save</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ============ SETTINGS MODAL ============ -->
   <div id="settings-modal" class="modal" hidden>
     <div class="modal__box">
@@ -221,6 +266,40 @@
 
         <label>Creativity (temperature): <span id="temp-val">0.9</span>
           <input type="range" id="set-temp" min="0" max="1.5" step="0.05" value="0.9" />
+        </label>
+
+        <label class="chk">
+          <input type="checkbox" id="set-stream" /> Stream replies as they are written
+        </label>
+
+        <hr />
+        <div class="setup-guide">
+          <strong>🧑 Your persona</strong> — tell characters who <em>you</em> are.
+          They'll use this in every chat.
+        </div>
+        <label class="chk">
+          <input type="checkbox" id="set-persona-on" /> Use my persona
+        </label>
+        <label>Your name
+          <input type="text" id="set-persona-name" placeholder="What characters call you" />
+        </label>
+        <label>About you
+          <textarea id="set-persona-desc" rows="3" placeholder="Age, appearance, personality, what you like — whatever you want them to know."></textarea>
+        </label>
+
+        <hr />
+        <div class="setup-guide">
+          <strong>🔊 Read aloud</strong> — have replies spoken out loud, hands-free.
+          Uses your device's built-in voices, free and offline.
+        </div>
+        <label class="chk">
+          <input type="checkbox" id="set-tts-on" /> Read replies aloud automatically
+        </label>
+        <label>Voice
+          <select id="set-tts-voice"></select>
+        </label>
+        <label>Speed: <span id="tts-rate-val">1</span>
+          <input type="range" id="set-tts-rate" min="0.5" max="1.6" step="0.05" value="1" />
         </label>
 
         <hr />
@@ -276,7 +355,9 @@
 
         <hr />
         <div class="danger-zone">
-          <button class="btn btn--ghost" id="export-data">Export all data</button>
+          <button class="btn btn--ghost" id="export-data">Export backup</button>
+          <button class="btn btn--ghost" id="import-data">Restore backup</button>
+          <input type="file" id="import-data-file" accept=".json,application/json" hidden />
           <button class="btn btn--danger" id="wipe-data">Erase everything</button>
         </div>
       </div>
@@ -295,10 +376,13 @@
   <script src="js/agegate.js"></script>
   <script src="js/api.js"></script>
   <script src="js/image.js"></script>
+  <script src="js/tts.js"></script>
   <script src="js/memory.js"></script>
+  <script src="js/memoryui.js"></script>
   <script src="js/characters.js"></script>
   <script src="js/gallery.js"></script>
   <script src="js/importer.js"></script>
+  <script src="js/sessions.js"></script>
   <script src="js/chat.js"></script>
   <script src="js/app.js"></script>
 </body>

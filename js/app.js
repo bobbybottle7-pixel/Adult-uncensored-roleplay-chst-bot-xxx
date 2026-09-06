@@ -36,9 +36,34 @@
     els.setMax.value = s.maxTokens;
     els.setTemp.value = s.temperature;
     els.tempVal.textContent = s.temperature;
+    els.stream.checked = s.stream !== false;
+    const persona = APP.Store.getPersona();
+    els.personaOn.checked   = !!persona.enabled;
+    els.personaName.value   = persona.name || '';
+    els.personaDesc.value   = persona.description || '';
+    fillTtsSettings();
     fillImageSettings(s.image || {});
     updateModelHint();
     els.settingsModal.hidden = false;
+  }
+
+  function fillTtsSettings() {
+    const cfg = APP.TTS.settings();
+    els.ttsOn.checked = !!cfg.enabled;
+    els.ttsRate.value = cfg.rate || 1;
+    els.ttsRateVal.textContent = cfg.rate || 1;
+    const voices = APP.TTS.voices();
+    els.ttsVoice.innerHTML = '';
+    const auto = document.createElement('option');
+    auto.value = ''; auto.textContent = voices.length ? 'Default voice' : 'No voices available';
+    els.ttsVoice.appendChild(auto);
+    voices.forEach(v => {
+      const o = document.createElement('option');
+      o.value = v.name; o.textContent = v.name + ' (' + v.lang + ')';
+      els.ttsVoice.appendChild(o);
+    });
+    els.ttsVoice.value = cfg.voice || '';
+    els.ttsOn.disabled = !APP.TTS.supported();
   }
 
   function fillImageSettings(img) {
@@ -94,6 +119,18 @@
     s.model = els.setModel.value;
     s.maxTokens = Math.max(128, Math.min(4096, parseInt(els.setMax.value, 10) || 800));
     s.temperature = parseFloat(els.setTemp.value);
+    s.stream = !!els.stream.checked;
+    s.tts = {
+      enabled: !!els.ttsOn.checked,
+      voice: els.ttsVoice.value,
+      rate: parseFloat(els.ttsRate.value) || 1,
+      pitch: 1,
+    };
+    APP.Store.savePersona({
+      enabled: !!els.personaOn.checked,
+      name: els.personaName.value.trim(),
+      description: els.personaDesc.value.trim(),
+    });
     const size = parseInt(els.imgSize.value, 10) || 768;
     s.image = Object.assign({}, s.image, {
       provider: els.imgProvider.value,
@@ -135,6 +172,14 @@
     els.setTemp      = document.getElementById('set-temp');
     els.tempVal      = document.getElementById('temp-val');
     els.modelHint    = document.getElementById('model-hint');
+    els.stream       = document.getElementById('set-stream');
+    els.personaOn    = document.getElementById('set-persona-on');
+    els.personaName  = document.getElementById('set-persona-name');
+    els.personaDesc  = document.getElementById('set-persona-desc');
+    els.ttsOn        = document.getElementById('set-tts-on');
+    els.ttsVoice     = document.getElementById('set-tts-voice');
+    els.ttsRate      = document.getElementById('set-tts-rate');
+    els.ttsRateVal   = document.getElementById('tts-rate-val');
     els.imgProvider  = document.getElementById('set-imgprovider');
     els.imgProviderHint = document.getElementById('imgprovider-hint');
     els.imgModel     = document.getElementById('set-imgmodel');
@@ -152,6 +197,8 @@
     });
     APP.Gallery.init();
     APP.Importer.init();
+    APP.Sessions.init();
+    APP.MemoryUI.init();
 
     document.getElementById('browse-btn').addEventListener('click', () => APP.Gallery.open());
     document.getElementById('welcome-browse-btn').addEventListener('click', () => APP.Gallery.open());
@@ -164,6 +211,25 @@
     document.getElementById('welcome-open-settings').addEventListener('click', openSettings);
     els.setModel.addEventListener('change', updateModelHint);
     els.imgProvider.addEventListener('change', updateProviderVisibility);
+    els.ttsRate.addEventListener('input', () => els.ttsRateVal.textContent = els.ttsRate.value);
+
+    // Restore a previously exported backup.
+    const importFile = document.getElementById('import-data-file');
+    document.getElementById('import-data').addEventListener('click', () => importFile.click());
+    importFile.addEventListener('change', () => {
+      const f = importFile.files[0];
+      if (!f) return;
+      const r = new FileReader();
+      r.onload = () => {
+        try {
+          const obj = JSON.parse(String(r.result));
+          if (!confirm('Restore this backup? It overwrites characters, chats and settings in this browser.')) return;
+          APP.Store.importAll(obj);
+          location.reload();
+        } catch (e) { APP.toast('That file is not a valid backup.'); }
+      };
+      r.readAsText(f);
+    });
     els.setTemp.addEventListener('input', () => els.tempVal.textContent = els.setTemp.value);
 
     // Data controls
