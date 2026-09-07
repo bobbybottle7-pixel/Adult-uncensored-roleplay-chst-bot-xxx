@@ -20,7 +20,7 @@
       avatarPrompt: 'crow witch woman, moon-pale skin, jet black raven-sheen hair, grey eyes, black feathers at shoulders, sheer dark gown, foggy moor at dusk, crows',
     },
     {
-      name: 'Selene', age: 24, gender: 'female', kind: 'roleplay',
+      name: 'Rhiannon', age: 24, gender: 'female', kind: 'roleplay',
       appearance: 'tawny skin, wild honey-brown hair, luminous amber wolf-eyes, faint fangs, a lithe muscular body, wearing a torn flannel over a sports bra, bare feet',
       personality: 'a werewolf, feral and fiercely loyal, running hot with instinct; she is protective, territorial, and prone to letting the wolf slip when her desire runs high. Rough affection and a whole lot of heat',
       scenario: 'A cabin at the edge of the woods, the full moon high. She showed up at your door restless, pupils blown wide, barely holding the change at bay.',
