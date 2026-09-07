@@ -65,7 +65,7 @@ APP.config = {
   // Curated rows shown in the gallery when not searching/filtering.
   // Each row picks characters by kind or tag, in order.
   featured: [
-    { title: '🤖 AI assistants',     kind: 'assistant' },
+    { title: '🤖 AI assistants',     kind: 'assistant', limit: 60 },
     { title: '🔥 Popular',            tags: ['romance', 'flirty', 'dominant'], limit: 12 },
     { title: '💕 Romance',            tags: ['romance'] },
     { title: '😈 Dominant',           tags: ['dominant', 'femdom'] },
