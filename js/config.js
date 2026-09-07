@@ -67,6 +67,7 @@ APP.config = {
   featured: [
     { title: '⭐ Flagship AIs',        tags: ['flagship'], limit: 12 },
     { title: '🤖 AI assistants',     kind: 'assistant', limit: 60 },
+    { title: '👯 Group chats (2+)',    tags: ['group'], limit: 12 },
     { title: '🔥 Popular',            tags: ['romance', 'flirty', 'dominant'], limit: 12 },
     { title: '💕 Romance',            tags: ['romance'] },
     { title: '😈 Dominant',           tags: ['dominant', 'femdom'] },

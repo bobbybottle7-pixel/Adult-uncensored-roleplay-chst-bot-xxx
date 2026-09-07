@@ -49,7 +49,17 @@
       const isAssistant = character.kind === 'assistant';
 
       const parts = [];
-      if (isAssistant) {
+      if (character.kind === 'group') {
+        // Multi-character scene: the model voices several distinct people at once.
+        parts.push(SAFETY);
+        parts.push('', 'This is a GROUP roleplay with multiple distinct characters, all fictional adults (18+). ' +
+          'You play every one of them at once. Label each line of dialogue and action with the speaking ' +
+          'character\'s name (e.g. "Mia: ..."). Keep each character\'s personality, voice, body, and desires ' +
+          'separate and consistent — never merge them into one voice. Let them talk to each other and react ' +
+          'to one another, not only to the user. Only the user controls the user; you control all the characters.');
+        parts.push('', 'The characters in this scene:', character.personality);
+        if (character.scenario) parts.push('', 'Scene: ' + character.scenario);
+      } else if (isAssistant) {
         parts.push(ASSISTANT_BASE);
         if (character.personality) parts.push('', 'Style & persona: ' + character.personality);
         if (character.scenario)    parts.push('', 'Context: ' + character.scenario);
@@ -75,9 +85,11 @@
                                      : 'What has happened so far (persists across sessions):'),
                    mem.summary);
       }
-      parts.push('', isAssistant
-        ? 'Respond directly and helpfully, consistent with everything above.'
-        : 'Continue the roleplay consistently with everything above.');
+      parts.push('', character.kind === 'group'
+        ? 'Continue the group scene, voicing each character distinctly and keeping them all in play.'
+        : isAssistant
+          ? 'Respond directly and helpfully, consistent with everything above.'
+          : 'Continue the roleplay consistently with everything above.');
       return parts.join('\n');
     },
 
