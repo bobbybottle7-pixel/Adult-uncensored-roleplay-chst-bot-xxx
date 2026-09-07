@@ -143,7 +143,7 @@
     // Assistants get a clean sleek look; everyone else gets a sexy glamour shot.
     const flavor = character.kind === 'assistant'
       ? 'sleek, upper body, '
-      : 'attractive, alluring, sexy, seductive confident pose, curvy, revealing outfit, glamour lighting, upper body portrait, ';
+      : 'extremely sexy, alluring, seductive pose, curvy body, skimpy lingerie, lace, cleavage, bare shoulders and midriff, boudoir, glamour lighting, full body, ';
     const prompt = base + ', ' + flavor + 'adult, 18+, ' +
                    (s.styleSuffix || 'highly detailed');
     // Use an explicit reroll seed if the character has one, else a stable hash.
