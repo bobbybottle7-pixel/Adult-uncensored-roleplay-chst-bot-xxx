@@ -177,3 +177,12 @@ Your key is stored in each visitor's own browser, never in the code.
 Only `js/api.js` talks to the provider. Keep the `APP.API.chat()` signature
 and you can point it at any other OpenAI-compatible endpoint (or a self-hosted
 model) without touching the rest of the app.
+
+---
+
+## Also in this repo
+
+**[`bizplan/`](bizplan/) — VentureForge**, a standalone AI business plan
+generator. Same browser-only, bring-your-own-key architecture as the chat app,
+but the financials are produced by a deterministic 36-month engine rather than
+written by the model, so the P&L actually foots. Open `bizplan/index.html`.
