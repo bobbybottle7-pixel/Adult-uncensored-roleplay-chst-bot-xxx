@@ -117,6 +117,34 @@ redistribute other people's characters — it just opens the ones you bring.
 | `/image a description` | Generate a picture (also `/img`, `/pic`) |
 | `/remember something` | Pin a fact the character always remembers |
 | `/continue` | Extend the last reply |
+| `/shift` | Open the form picker for a shapeshifter |
+| `/shift a description` | Shift a shapeshifter into a form you describe on the spot |
+
+## Shapeshifters 🌀
+
+A **shapeshifter** is a single continuous being that can change form mid-chat,
+instead of one fixed character. Click **🌀 New shapeshifter** in the sidebar:
+
+1. **Choose a starting form** from the library — creatures, abstract beings,
+   fictional people, elementals, and mythic beasts — or describe your own.
+2. **Working title & essence** auto-fill from the form and are fully
+   editable — the essence is who they are underneath every shape: voice,
+   personality, what they want. It never changes, no matter what body they
+   wear.
+3. Pick how free their shifting is — only when you ask, or whenever the
+   scene calls for it.
+
+In chat, tap **🌀** in the top bar (or type `/shift`) to open the form
+picker. Forms it has already worn with you show first, so it can return to
+one; pick a new one from the library, or describe a form on the spot. The
+app narrates the transformation in the chat, then continues the scene as
+the new form — and it remembers everything from every form it has worn,
+because memory belongs to the being, not the body. Every form, however
+inhuman, is an original fictional adult (18+) being — it will never take
+on a real, identifiable person's likeness.
+
+Six ready-made shapeshifters (each with a few forms built in) are in
+**Browse premade** — search or filter by the `shapeshifter` tag.
 
 ## Long-term memory
 
@@ -166,6 +194,8 @@ Your key is stored in each visitor's own browser, never in the code.
 | `js/agegate.js` | 18+ gate |
 | `js/api.js` | Model adapter with automatic fallback |
 | `js/memory.js` | Long-term memory + safety baseline |
+| `js/shapeshifter.js` | Shapeshifter form library, creation wizard, in-chat shift picker |
+| `js/pack-shapeshifters.js` | Premade shapeshifters (gallery) |
 | `js/characters.js` | Character create/edit/list |
 | `js/chat.js` | Chat UI + send/regenerate flow |
 | `js/app.js` | Bootstrap, settings, sidebar |

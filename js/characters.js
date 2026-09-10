@@ -162,6 +162,11 @@
           (presetSeed ? 'img/avatars/' + APP.Image.slug(presetSeed.name) + '.jpg' : ''),
         tags: els.tags.value.split(',').map(t => t.trim()).filter(Boolean),
         createdAt: existing?.createdAt || Date.now(),
+        // Shapeshifter state (forms library + which one is active) is managed
+        // in chat via the Shift button, not this editor — just carry it through.
+        forms: existing?.forms || presetSeed?.forms,
+        currentFormId: existing?.currentFormId || presetSeed?.currentFormId,
+        shiftFreedom: existing?.shiftFreedom || presetSeed?.shiftFreedom,
       };
       // A reroll picks a fresh generated face and drops any imported art.
       if (rerollSeed !== undefined) {

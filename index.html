@@ -41,6 +41,7 @@
       </div>
 
       <button class="btn btn--primary btn--block" id="new-character-btn">+ New character</button>
+      <button class="btn btn--primary btn--block" id="new-shapeshifter-btn" style="margin-top:8px">🌀 New shapeshifter</button>
       <button class="btn btn--ghost btn--block" id="browse-btn" style="margin-top:8px">✨ Browse premade</button>
       <button class="btn btn--ghost btn--block" id="import-btn" style="margin-top:8px">⬇ Import card</button>
 
@@ -60,6 +61,7 @@
         <div class="topbar__actions">
           <button class="icon-btn" id="chats-btn" title="All chats with this character" hidden>💬</button>
           <button class="icon-btn" id="memory-btn" title="What they remember" hidden>🧠</button>
+          <button class="icon-btn" id="shift-btn" title="Shift into another form" hidden>🌀</button>
           <button class="icon-btn" id="new-chat-btn" title="New scene (keeps memory)" hidden>New</button>
           <button class="icon-btn" id="edit-char-btn" title="Edit character" hidden>Edit</button>
         </div>
@@ -84,7 +86,7 @@
         <div id="messages" class="messages"></div>
         <form id="composer" class="composer">
           <textarea id="composer-input" class="composer__input" rows="1"
-                    placeholder="Message, *action*, /image …, /remember …, /continue"></textarea>
+                    placeholder="Message, *action*, /image …, /shift …, /remember …, /continue"></textarea>
           <button type="button" class="btn btn--ghost composer__send" id="image-btn"
                   title="Generate image (uses typed text, or a picture of the character)">🎨</button>
           <button type="submit" class="btn btn--primary composer__send" id="send-btn">Send</button>
@@ -158,6 +160,81 @@
           on first view, so they may take a moment to appear.
         </p>
         <div id="gallery-grid" class="gallery__grid"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ SHAPESHIFTER CREATION WIZARD ============ -->
+  <div id="ss-modal" class="modal" hidden>
+    <div class="modal__box modal__box--wide">
+      <div class="modal__head">
+        <h2>Shape a new being</h2>
+        <button class="icon-btn" id="ss-close">&times;</button>
+      </div>
+      <div class="modal__body">
+        <p class="hint" style="margin:0 0 16px">
+          Everything here is fictional. Choose the shape it wears first — you'll
+          be able to make it wear others later, mid-conversation.
+        </p>
+
+        <label style="margin-bottom:8px">Choose a starting form</label>
+        <div id="ss-form-grid"></div>
+
+        <label style="margin-top:18px">Working title
+          <input type="text" id="ss-title" placeholder="What you'll call them" maxlength="60" />
+        </label>
+
+        <label>Essence / starting signal
+          <textarea id="ss-essence" rows="3" placeholder="Who they are underneath every shape — personality, voice, what they want…"></textarea>
+        </label>
+
+        <div class="boundary-note">
+          <strong>A clear boundary:</strong> every form is an original fictional
+          adult (18+) being. It will never impersonate a real, identifiable person.
+        </div>
+
+        <label style="margin-top:16px">Age <span class="hint">(the being's default age, 18+)</span>
+          <input type="number" id="ss-age" min="18" max="999" value="21" />
+        </label>
+        <label>Scenario / setting <span class="hint">(optional)</span>
+          <textarea id="ss-scenario" rows="2" placeholder="Where you meet, your relationship, what's happening…"></textarea>
+        </label>
+        <label>How free is their shifting?
+          <select id="ss-freedom">
+            <option value="invited">Only when I ask or the scene calls for it</option>
+            <option value="free">Whenever the moment or their mood calls for it</option>
+          </select>
+        </label>
+        <label>Tags <span class="hint">(comma separated)</span>
+          <input type="text" id="ss-tags" placeholder="e.g. fantasy, playful" />
+        </label>
+      </div>
+      <div class="modal__foot">
+        <div class="spacer"></div>
+        <button class="btn btn--ghost" id="ss-cancel">Cancel</button>
+        <button class="btn btn--primary" id="ss-create">Create</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ IN-CHAT SHIFT MODAL ============ -->
+  <div id="shift-modal" class="modal" hidden>
+    <div class="modal__box modal__box--wide">
+      <div class="modal__head">
+        <h2 id="shift-modal-title">Shift into…</h2>
+        <button class="icon-btn" id="shift-close">&times;</button>
+      </div>
+      <div class="modal__body">
+        <p class="hint" style="margin:0 0 16px">
+          Picking a form narrates the transformation in the chat and continues
+          the scene from there. Forms this being has already worn with you are
+          shown first.
+        </p>
+        <div id="shift-form-grid"></div>
+      </div>
+      <div class="modal__foot">
+        <div class="spacer"></div>
+        <button class="btn btn--ghost" id="shift-cancel">Cancel</button>
       </div>
     </div>
   </div>
@@ -386,11 +463,13 @@
   <script src="js/pack-office.js"></script>
   <script src="js/pack-groups.js"></script>
   <script src="js/pack-extra.js"></script>
+  <script src="js/pack-shapeshifters.js"></script>
   <script src="js/storage.js"></script>
   <script src="js/agegate.js"></script>
   <script src="js/api.js"></script>
   <script src="js/image.js"></script>
   <script src="js/tts.js"></script>
+  <script src="js/shapeshifter.js"></script>
   <script src="js/memory.js"></script>
   <script src="js/memoryui.js"></script>
   <script src="js/characters.js"></script>

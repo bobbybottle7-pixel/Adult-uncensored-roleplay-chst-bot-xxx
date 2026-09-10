@@ -199,10 +199,13 @@
     APP.Importer.init();
     APP.Sessions.init();
     APP.MemoryUI.init();
+    APP.Shapeshifter.initWizard({ onCreated: openCharacter });
+    APP.Shapeshifter.initShiftPicker({ onShift: (character, form) => APP.Chat.shiftForm(character, form) });
 
     document.getElementById('browse-btn').addEventListener('click', () => APP.Gallery.open());
     document.getElementById('welcome-browse-btn').addEventListener('click', () => APP.Gallery.open());
     document.getElementById('import-btn').addEventListener('click', () => APP.Importer.open());
+    document.getElementById('new-shapeshifter-btn').addEventListener('click', () => APP.Shapeshifter.openWizard());
 
     // Settings wiring
     document.getElementById('settings-btn').addEventListener('click', openSettings);

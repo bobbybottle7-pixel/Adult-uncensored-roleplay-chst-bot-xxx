@@ -49,7 +49,9 @@
       const isAssistant = character.kind === 'assistant';
 
       const parts = [];
-      if (character.kind === 'group') {
+      if (character.kind === 'shapeshifter') {
+        parts.push(SAFETY, '', APP.Shapeshifter.systemBlock(character));
+      } else if (character.kind === 'group') {
         // Multi-character scene: the model voices several distinct people at once.
         parts.push(SAFETY);
         parts.push('', 'This is a GROUP roleplay with multiple distinct characters, all fictional adults (18+). ' +

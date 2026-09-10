@@ -130,9 +130,36 @@
     return String(name || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
   };
 
+  // Category -> avatar flavor for shapeshifter forms. Humanoid-leaning
+  // categories get the same glamour treatment as normal characters;
+  // creature/abstract/elemental lean into a dramatic portrait instead.
+  const SHIFT_FLAVOR = {
+    person:    'extremely sexy, alluring, seductive pose, curvy body, skimpy lingerie, lace, cleavage, boudoir, glamour lighting, full body, ',
+    mythic:    'extremely sexy, alluring hybrid form, curvy body, fantasy glamour, dramatic lighting, full body, ',
+    creature:  'striking creature portrait, sensual pose, dramatic cinematic lighting, full body, ',
+    elemental: 'glowing elemental being, sensual pose, dramatic cinematic lighting, full body, ',
+    abstract:  'surreal abstract entity, sensual pose, dreamlike glow, dramatic lighting, full body, ',
+  };
+
   APP.Image.avatarUrlFor = function (character) {
     // Imported PNG cards carry their own artwork — use it directly.
     if (character.avatarImage) return character.avatarImage;
+
+    if (character.kind === 'shapeshifter') {
+      const form = APP.Shapeshifter && APP.Shapeshifter.avatarFor(character);
+      if (form) {
+        const s = imgSettings();
+        const base = form.avatarPrompt || form.essence || form.name;
+        const flavor = SHIFT_FLAVOR[form.category] || SHIFT_FLAVOR.person;
+        const prompt = base + ', ' + flavor + 'adult, 18+, ' + (s.styleSuffix || 'highly detailed');
+        const seed = (form.avatarSeed != null && form.avatarSeed !== '')
+          ? form.avatarSeed
+          : hashSeed(String(form.id || form.name || base));
+        return pollinationsUrl(prompt, { seed, width: 384, height: 384 },
+                               Object.assign({}, s, { model: 'turbo' }));
+      }
+    }
+
     // Pre-generated preset avatar file (fast, reliable), unless rerolled.
     if (character.avatarFile && (character.avatarSeed == null || character.avatarSeed === '')) {
       return character.avatarFile;
