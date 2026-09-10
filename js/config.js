@@ -12,14 +12,22 @@ APP.config = {
    * The app tries them TOP-TO-BOTTOM and auto-falls-back to the next one
    * whenever a model is busy (429), rate-limited, or errors — so one model
    * being capped won't stop your chat. All end in ":free" = no cost.
-   * If a model id ever stops existing, it's simply skipped. */
+   * If a model id ever stops existing, it's simply skipped.
+   *
+   * Vetted 2026-09 directly against the OpenRouter API with a real key:
+   * sent an explicit in-character roleplay prompt to every free model on
+   * the platform and checked both that the id still resolves AND that the
+   * model actually complies in character instead of refusing. Models that
+   * had gone paid-only (old glm-5.2 / minimax slugs) or that refused adult
+   * roleplay outright (nemotron-3-super, nemotron-3.5-lightning, ling-3.0)
+   * were dropped. Re-check periodically — free model lineups rotate. */
   freeModels: [
-    { id: 'z-ai/glm-5.2:free',                        label: 'GLM 5.2 (capable, permissive — best for RP)' },
-    { id: 'minimax/minimax-m3:free',                  label: 'MiniMax M3 (creative, permissive)' },
-    { id: 'minimax/minimax-m2.7:free',                label: 'MiniMax M2.7' },
-    { id: 'nvidia/nemotron-3-ultra-550b-a55b:free',   label: 'Nemotron 3 Ultra 550B (large)' },
-    { id: 'nvidia/nemotron-3-super-120b-a12b:free',   label: 'Nemotron 3 Super 120B' },
-    { id: 'google/gemma-4-31b-it:free',               label: 'Gemma 4 31B (reliable, more filtered)' },
+    { id: 'nex-agi/nex-n2.5-mini:free',               label: 'Nex N2.5 Mini (fast, permissive — best default for RP)' },
+    { id: 'poolside/laguna-s-2.1:free',                label: 'Poolside Laguna S 2.1 (creative, permissive)' },
+    { id: 'liquid/lfm-2.5-2.6b:free',                  label: 'LFM 2.5 (fast, lightweight)' },
+    { id: 'poolside/laguna-xs-2.1:free',                label: 'Poolside Laguna XS 2.1 (fastest, smaller)' },
+    { id: 'nvidia/nemotron-3-ultra-550b-a55b:free',    label: 'Nemotron 3 Ultra 550B (largest, most capable — slower)' },
+    { id: 'google/gemma-4-31b-it:free',                label: 'Gemma 4 31B (reliable, more filtered)' },
   ],
 
   defaults: {
