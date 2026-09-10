@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="robots" content="noindex, nofollow" />
-  <title>Roleplay Chat</title>
+  <title>Shapeshift</title>
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
@@ -14,9 +14,10 @@
     <div class="age-gate__box">
       <div class="age-gate__badge">18+</div>
       <h1>Adults only</h1>
-      <p>This site contains fictional adult (18+) roleplay and sexually explicit
-         content. All characters are fictional and depicted as adults aged 18 or
-         older. By entering you confirm that:</p>
+      <p>This site is a private, fictional adult (18+) roleplay chat where you
+         shape a shifting being and talk with it as it changes form. All
+         beings are fictional and depicted as adults aged 18 or older. By
+         entering you confirm that:</p>
       <ul>
         <li>You are at least 18 years old (or the age of majority where you live).</li>
         <li>Adult content is legal to view where you are.</li>
@@ -36,15 +37,13 @@
     <!-- Sidebar -->
     <aside class="sidebar" id="sidebar">
       <div class="sidebar__head">
-        <span class="brand">Roleplay</span>
+        <span class="brand">Shapeshift</span>
         <button class="icon-btn" id="sidebar-close" title="Close">&times;</button>
       </div>
 
-      <button class="btn btn--primary btn--block" id="new-character-btn">+ New character</button>
-      <button class="btn btn--ghost btn--block" id="browse-btn" style="margin-top:8px">✨ Browse premade</button>
-      <button class="btn btn--ghost btn--block" id="import-btn" style="margin-top:8px">⬇ Import card</button>
+      <button class="btn btn--primary btn--block" id="new-shapeshifter-btn">🌀 New shapeshifter</button>
 
-      <div class="sidebar__section-label">Characters</div>
+      <div class="sidebar__section-label">Your beings</div>
       <div id="character-list" class="char-list"></div>
 
       <div class="sidebar__foot">
@@ -56,22 +55,24 @@
     <main class="main">
       <header class="topbar">
         <button class="icon-btn" id="sidebar-open" title="Menu">☰</button>
-        <div class="topbar__title" id="topbar-title">Select a character</div>
+        <div class="topbar__title" id="topbar-title">Select a being</div>
         <div class="topbar__actions">
-          <button class="icon-btn" id="chats-btn" title="All chats with this character" hidden>💬</button>
+          <button class="icon-btn" id="chats-btn" title="All chats with this being" hidden>💬</button>
           <button class="icon-btn" id="memory-btn" title="What they remember" hidden>🧠</button>
+          <button class="icon-btn" id="shift-btn" title="Shift into another form" hidden>🌀</button>
           <button class="icon-btn" id="new-chat-btn" title="New scene (keeps memory)" hidden>New</button>
-          <button class="icon-btn" id="edit-char-btn" title="Edit character" hidden>Edit</button>
+          <button class="icon-btn" id="edit-char-btn" title="Edit being" hidden>Edit</button>
         </div>
       </header>
 
       <!-- Empty / welcome state -->
       <section id="welcome" class="welcome">
         <div class="welcome__inner">
-          <h2>Your private roleplay space</h2>
-          <p>Create a character to begin, or pick one from the left.</p>
-          <button class="btn btn--primary" id="welcome-new-btn">+ Create your first character</button>
-          <button class="btn btn--ghost" id="welcome-browse-btn" style="margin-left:8px">✨ Browse premade</button>
+          <h2>Shape a being. Watch it change.</h2>
+          <p>Give it a name and an essence, pick the shape it wears first, then
+             talk. It stays the same self underneath every form it takes —
+             and remembers you across every shift.</p>
+          <button class="btn btn--primary" id="welcome-new-btn">🌀 Shape your first being</button>
           <p class="welcome__hint" id="welcome-key-hint" hidden>
             ⚠ You haven't added your free AI key yet.
             <button class="linkbtn" id="welcome-open-settings">Add it in Settings →</button>
@@ -84,9 +85,9 @@
         <div id="messages" class="messages"></div>
         <form id="composer" class="composer">
           <textarea id="composer-input" class="composer__input" rows="1"
-                    placeholder="Message, *action*, /image …, /remember …, /continue"></textarea>
+                    placeholder="Message, *action*, /image …, /shift …, /remember …, /continue"></textarea>
           <button type="button" class="btn btn--ghost composer__send" id="image-btn"
-                  title="Generate image (uses typed text, or a picture of the character)">🎨</button>
+                  title="Generate image (uses typed text, or the being's current form)">🎨</button>
           <button type="submit" class="btn btn--primary composer__send" id="send-btn">Send</button>
         </form>
         <div class="composer__row">
@@ -97,96 +98,84 @@
     </main>
   </div>
 
-  <!-- ============ CHARACTER EDITOR MODAL ============ -->
-  <div id="char-modal" class="modal" hidden>
-    <div class="modal__box">
+  <!-- ============ SHAPE / EDIT A BEING (one modal, two modes) ============ -->
+  <div id="ss-modal" class="modal" hidden>
+    <div class="modal__box modal__box--wide">
       <div class="modal__head">
-        <h2 id="char-modal-title">New character</h2>
-        <button class="icon-btn" id="char-modal-close">&times;</button>
+        <h2 id="ss-modal-title">Shape a new being</h2>
+        <button class="icon-btn" id="ss-close">&times;</button>
       </div>
       <div class="modal__body">
-        <div class="cf-avatar">
-          <div class="cf-avatar__frame"><img id="cf-avatar-img" class="cf-avatar__img" alt="avatar" /></div>
-          <button type="button" class="btn btn--ghost" id="cf-reroll">🎲 Reroll avatar</button>
+        <p class="hint" style="margin:0 0 16px">
+          Everything here is fictional. Choose the shape it wears first — you'll
+          be able to make it wear others later, mid-conversation, with the 🌀
+          Shift button in chat.
+        </p>
+
+        <div id="ss-form-section">
+          <label style="margin-bottom:8px">Quick start <span class="hint">(a fully written being — still yours to edit before creating)</span></label>
+          <div id="ss-starter-row" class="form-grid" style="margin-bottom:18px"></div>
+
+          <label style="margin-bottom:8px">…or build entirely your own — choose a starting form</label>
+          <div id="ss-form-grid"></div>
         </div>
-        <label>Name
-          <input type="text" id="cf-name" placeholder="e.g. Aria" maxlength="60" />
+
+        <label style="margin-top:18px">Working title
+          <input type="text" id="ss-title" placeholder="What you'll call them" maxlength="60" />
         </label>
-        <label>Age <span class="hint">(must be 18+)</span>
-          <input type="number" id="cf-age" min="18" max="999" value="21" />
+
+        <label>Essence / starting signal
+          <textarea id="ss-essence" rows="3" placeholder="Who they are underneath every shape — personality, voice, what they want…"></textarea>
         </label>
-        <label>Short description / appearance
-          <textarea id="cf-appearance" rows="2" placeholder="Looks, vibe, style…"></textarea>
+
+        <div class="boundary-note">
+          <strong>A clear boundary:</strong> every form is an original fictional
+          adult (18+) being. It will never impersonate a real, identifiable person.
+        </div>
+
+        <label style="margin-top:16px">Age <span class="hint">(the being's default age, 18+)</span>
+          <input type="number" id="ss-age" min="18" max="999" value="21" />
         </label>
-        <label>Personality
-          <textarea id="cf-personality" rows="3" placeholder="Traits, likes, quirks, how they speak…"></textarea>
+        <label>Scenario / setting <span class="hint">(optional)</span>
+          <textarea id="ss-scenario" rows="2" placeholder="Where you meet, your relationship, what's happening…"></textarea>
         </label>
-        <label>Scenario / setting
-          <textarea id="cf-scenario" rows="3" placeholder="Where you are, your relationship, what's happening…"></textarea>
-        </label>
-        <label>First message (greeting)
-          <textarea id="cf-greeting" rows="3" placeholder="What the character says first…"></textarea>
+        <label>How free is their shifting?
+          <select id="ss-freedom">
+            <option value="invited">Only when I ask or the scene calls for it</option>
+            <option value="free">Whenever the moment or their mood calls for it</option>
+          </select>
         </label>
         <label>Tags <span class="hint">(comma separated)</span>
-          <input type="text" id="cf-tags" placeholder="e.g. romance, fantasy" />
+          <input type="text" id="ss-tags" placeholder="e.g. fantasy, playful" />
         </label>
       </div>
       <div class="modal__foot">
-        <button class="btn btn--danger" id="cf-delete" hidden>Delete</button>
+        <button class="btn btn--danger" id="ss-delete" hidden>Delete</button>
         <div class="spacer"></div>
-        <button class="btn btn--ghost" id="cf-cancel">Cancel</button>
-        <button class="btn btn--primary" id="cf-save">Save</button>
+        <button class="btn btn--ghost" id="ss-cancel">Cancel</button>
+        <button class="btn btn--primary" id="ss-create">Create</button>
       </div>
     </div>
   </div>
 
-  <!-- ============ GALLERY MODAL ============ -->
-  <div id="gallery-modal" class="modal" hidden>
+  <!-- ============ IN-CHAT SHIFT MODAL ============ -->
+  <div id="shift-modal" class="modal" hidden>
     <div class="modal__box modal__box--wide">
       <div class="modal__head">
-        <h2>Browse premade characters</h2>
-        <button class="icon-btn" id="gallery-close">&times;</button>
-      </div>
-      <div class="gallery__controls">
-        <input type="text" id="gallery-search" placeholder="Search by name, trait, scenario…" />
-        <div id="gallery-tags" class="chips"></div>
+        <h2 id="shift-modal-title">Shift into…</h2>
+        <button class="icon-btn" id="shift-close">&times;</button>
       </div>
       <div class="modal__body">
-        <p class="hint" style="margin:-4px 0 12px">
-          All characters are original fictional adults (18+). Pick one to copy into
-          your list — you can edit everything before saving. Avatars are generated
-          on first view, so they may take a moment to appear.
+        <p class="hint" style="margin:0 0 16px">
+          Picking a form narrates the transformation in the chat and continues
+          the scene from there. Forms this being has already worn with you are
+          shown first.
         </p>
-        <div id="gallery-grid" class="gallery__grid"></div>
+        <div id="shift-form-grid"></div>
       </div>
-    </div>
-  </div>
-
-  <!-- ============ IMPORT MODAL ============ -->
-  <div id="import-modal" class="modal" hidden>
-    <div class="modal__box">
-      <div class="modal__head">
-        <h2>Import a character card</h2>
-        <button class="icon-btn" id="import-close">&times;</button>
-      </div>
-      <div class="modal__body">
-        <p class="hint" style="margin-top:0">
-          Bring in characters from Chub / CharacterHub, JanitorAI, SpicyChat,
-          SillyTavern, TavernAI and similar sites. On the site, use its
-          <b>Export</b> / <b>Download</b> button to get the character's
-          <b>PNG card</b> or <b>JSON</b>, then drop it here. All imports are
-          treated as fictional adults (18+).
-        </p>
-        <div id="import-drop" class="dropzone">
-          <div>📥 Drop a <b>.png</b> card or <b>.json</b> here</div>
-          <div class="hint">or</div>
-          <label class="btn btn--ghost" for="import-file">Choose a file</label>
-          <input type="file" id="import-file" accept=".png,.json,image/png,application/json" hidden />
-        </div>
-        <label style="margin-top:16px">…or paste character JSON
-          <textarea id="import-paste" rows="5" placeholder='{ "name": "...", "description": "...", "first_mes": "..." }'></textarea>
-        </label>
-        <button class="btn btn--primary btn--block" id="import-paste-btn">Import pasted JSON</button>
+      <div class="modal__foot">
+        <div class="spacer"></div>
+        <button class="btn btn--ghost" id="shift-cancel">Cancel</button>
       </div>
     </div>
   </div>
@@ -199,8 +188,8 @@
         <button class="icon-btn" id="sessions-close">&times;</button>
       </div>
       <div class="modal__body">
-        <p class="hint" style="margin-top:0">Keep several separate scenes with the same character.
-          Each has its own messages, and they remember you in all of them.</p>
+        <p class="hint" style="margin-top:0">Keep several separate scenes with the same being.
+          Each has its own messages, and it remembers you — and every form it's worn — in all of them.</p>
         <div id="sessions-list" class="slist"></div>
       </div>
       <div class="modal__foot">
@@ -217,8 +206,8 @@
         <button class="icon-btn" id="memory-close">&times;</button>
       </div>
       <div class="modal__body">
-        <p class="hint" style="margin-top:0">This is what the character carries into every new chat.
-          Edit it freely — anything you write here they will treat as true.</p>
+        <p class="hint" style="margin-top:0">This is what the being carries into every new chat and every new form.
+          Edit it freely — anything you write here it will treat as true.</p>
         <label>Story so far <span class="hint">(auto-written every few turns)</span>
           <textarea id="memory-summary" rows="6" placeholder="Nothing remembered yet…"></textarea>
         </label>
@@ -274,14 +263,14 @@
 
         <hr />
         <div class="setup-guide">
-          <strong>🧑 Your persona</strong> — tell characters who <em>you</em> are.
-          They'll use this in every chat.
+          <strong>🧑 Your persona</strong> — tell your beings who <em>you</em> are.
+          They'll use this in every chat, in every form.
         </div>
         <label class="chk">
           <input type="checkbox" id="set-persona-on" /> Use my persona
         </label>
         <label>Your name
-          <input type="text" id="set-persona-name" placeholder="What characters call you" />
+          <input type="text" id="set-persona-name" placeholder="What they call you" />
         </label>
         <label>About you
           <textarea id="set-persona-desc" rows="3" placeholder="Age, appearance, personality, what you like — whatever you want them to know."></textarea>
@@ -371,31 +360,15 @@
   <div id="toast" class="toast" hidden></div>
 
   <script src="js/config.js"></script>
-  <script src="js/presets.js"></script>
-  <script src="js/uncensored-ais.js"></script>
-  <script src="js/spicy-females.js"></script>
-  <script src="js/pack-romance.js"></script>
-  <script src="js/pack-femdom.js"></script>
-  <script src="js/pack-fantasy.js"></script>
-  <script src="js/pack-supernatural.js"></script>
-  <script src="js/pack-scifi.js"></script>
-  <script src="js/pack-slice.js"></script>
-  <script src="js/pack-playful.js"></script>
-  <script src="js/pack-mature.js"></script>
-  <script src="js/pack-monster.js"></script>
-  <script src="js/pack-office.js"></script>
-  <script src="js/pack-groups.js"></script>
-  <script src="js/pack-extra.js"></script>
   <script src="js/storage.js"></script>
   <script src="js/agegate.js"></script>
   <script src="js/api.js"></script>
   <script src="js/image.js"></script>
   <script src="js/tts.js"></script>
+  <script src="js/starters.js"></script>
+  <script src="js/shapeshifter.js"></script>
   <script src="js/memory.js"></script>
   <script src="js/memoryui.js"></script>
-  <script src="js/characters.js"></script>
-  <script src="js/gallery.js"></script>
-  <script src="js/importer.js"></script>
   <script src="js/sessions.js"></script>
   <script src="js/chat.js"></script>
   <script src="js/app.js"></script>

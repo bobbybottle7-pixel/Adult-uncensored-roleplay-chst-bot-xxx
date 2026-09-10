@@ -28,19 +28,36 @@
   function setStatus(t) { els.status.textContent = t || ''; }
   function scrollDown() { els.messages.scrollTop = els.messages.scrollHeight; }
 
+  function currentForm(c) {
+    return c && c.forms ? c.forms.find(f => f.id === c.currentFormId) || c.forms[0] : null;
+  }
+
+  function titleFor(c, sid) {
+    let t = c.name;
+    const form = currentForm(c);
+    if (form) t += ' — ' + form.name;
+    const sessions = APP.Store.getSessions(c.id);
+    const s = sessions.find(x => x.id === sid);
+    if (sessions.length > 1 && s) t += ' · ' + s.title;
+    return t;
+  }
+
   function startingMessage(c) {
-    if (c.greeting && c.greeting.trim()) return c.greeting.trim();
-    if (c.kind === 'assistant') {
-      return (c.name || 'Assistant') + ' online. No filters, no limits — ask me anything or tell me what you want to do.';
-    }
-    return '*' + (c.name || 'They') + ' looks up as you arrive, a slow smile spreading.* "There you are. I was hoping you\'d come. Where should we begin?"';
+    const form = currentForm(c);
+    const name = form ? form.name : 'a shape you don\'t recognize yet';
+    return '*' + (c.name || 'They') + ' settles into ' + name + ', watching you with quiet interest.* "This is the shape I\'m wearing right now — but it isn\'t the only one. Ask, and I\'ll show you another. For now… where should we begin?"';
   }
 
   function buildRequestMessages(extra) {
     const system = APP.Memory.buildSystemPrompt(current);
     const recent = transcript
       .slice(-APP.config.recentMessageWindow)
-      .map(m => ({ role: m.role, content: m.content }));
+      // "shift" dividers aren't a real chat role — fold them into an
+      // assistant-voiced note so the model still has the transformation
+      // history without the API rejecting an unknown role.
+      .map(m => m.role === 'shift'
+        ? { role: 'assistant', content: '*(shifted: ' + m.content + ')*' }
+        : { role: m.role, content: m.content });
     return [{ role: 'system', content: system }, ...recent].concat(extra || []);
   }
 
@@ -59,6 +76,17 @@
     const isLast = idx === transcript.length - 1;
     const wrap = document.createElement('div');
     wrap.className = 'msgwrap msgwrap--' + (m.role === 'user' ? 'user' : 'bot');
+
+    // --- transformation divider ---
+    if (m.role === 'shift') {
+      wrap.className = 'msgwrap msgwrap--shift';
+      const div = document.createElement('div');
+      div.className = 'shift-divider';
+      div.innerHTML = '<span>⟡ ' + esc(m.content) + '</span>';
+      wrap.appendChild(div);
+      els.messages.appendChild(wrap);
+      return;
+    }
 
     // --- image message ---
     if (m.image) {
@@ -208,7 +236,7 @@
     setStatus('');
     if (APP.TTS) APP.TTS.speak(text);
     APP.Memory.maybeUpdate(current, transcript).then(() => {
-      APP.Characters.renderList(current.id);
+      APP.Shapeshifter.renderList(current.id);
     });
   }
 
@@ -226,6 +254,7 @@
       els.editChar = document.getElementById('edit-char-btn');
       els.chatsBtn = document.getElementById('chats-btn');
       els.memBtn   = document.getElementById('memory-btn');
+      els.shiftBtn = document.getElementById('shift-btn');
       els.regen    = document.getElementById('regen-btn');
       els.imgBtn   = document.getElementById('image-btn');
 
@@ -242,9 +271,10 @@
         els.input.style.height = Math.min(els.input.scrollHeight, 160) + 'px';
       });
       els.newChat.addEventListener('click', () => this.startNewChat());
-      els.editChar.addEventListener('click', () => APP.Characters.openEditor(current.id));
+      els.editChar.addEventListener('click', () => APP.Shapeshifter.openEditor(current.id));
       els.chatsBtn.addEventListener('click', () => APP.Sessions.open(current));
       els.memBtn.addEventListener('click', () => APP.MemoryUI.open(current));
+      els.shiftBtn.addEventListener('click', () => APP.Shapeshifter.openShiftPicker(current));
       els.regen.addEventListener('click', () => this.regenerate());
       els.imgBtn.addEventListener('click', () => {
         const desc = els.input.value.trim();
@@ -256,6 +286,16 @@
 
     currentCharacter() { return current; },
 
+    // Back to the welcome state (used after the open being is deleted).
+    close() {
+      current = null; sessionId = null; transcript = [];
+      APP.TTS && APP.TTS.stop();
+      els.welcome.hidden = false;
+      els.wrap.hidden = true;
+      [els.newChat, els.editChar, els.chatsBtn, els.memBtn, els.shiftBtn].forEach(b => b.hidden = true);
+      els.title.textContent = 'Select a being';
+    },
+
     open(charId, sid) {
       current = APP.Store.getCharacter(charId);
       if (!current) return;
@@ -266,10 +306,8 @@
 
       els.welcome.hidden = true;
       els.wrap.hidden = false;
-      [els.newChat, els.editChar, els.chatsBtn, els.memBtn].forEach(b => b.hidden = false);
-      const sessions = APP.Store.getSessions(charId);
-      const s = sessions.find(x => x.id === sessionId);
-      els.title.textContent = current.name + (sessions.length > 1 && s ? ' · ' + s.title : '');
+      [els.newChat, els.editChar, els.chatsBtn, els.memBtn, els.shiftBtn].forEach(b => b.hidden = false);
+      els.title.textContent = titleFor(current, sessionId);
 
       if (transcript.length === 0) {
         transcript = [{ role: 'assistant', content: startingMessage(current) }];
@@ -319,6 +357,16 @@
         this.continueLast();
         return;
       }
+      const shiftCmd = text.match(/^\/shift(?:\s+(.+))?$/i);
+      if (shiftCmd) {
+        els.input.value = ''; els.input.style.height = 'auto';
+        if (shiftCmd[1] && shiftCmd[1].trim()) {
+          this.shiftForm(current, APP.Shapeshifter.customForm(shiftCmd[1].trim()));
+        } else {
+          APP.Shapeshifter.openShiftPicker(current);
+        }
+        return;
+      }
 
       if (!APP.API.hasKey()) {
         APP.toast('Add your free AI key in Settings first.');
@@ -334,12 +382,12 @@
       await this.generate();
     },
 
-    async generate() {
+    async generate(extraMessages) {
       if (!current) return;
       setBusy(true);
       setStatus('');
       try {
-        const reply = await streamInto();
+        const reply = await streamInto(null, extraMessages);
         transcript.push({ role: 'assistant', content: reply, swipes: [reply], swipe: 0 });
         renderAll();
         afterReply(reply);
@@ -349,6 +397,36 @@
       } finally {
         setBusy(false);
       }
+    },
+
+    // Transform a shapeshifter into `form` (an existing library/saved form,
+    // or one made with APP.Shapeshifter.customForm()). Records the shift as
+    // a divider in the transcript, then asks the model to narrate it and
+    // continue the scene in the new form.
+    async shiftForm(character, form) {
+      if (busy || !current || !character || current.id !== character.id) return;
+      character.forms = character.forms || [];
+      const prev = currentForm(character);
+      if (!character.forms.some(f => f.id === form.id)) character.forms.push(form);
+      character.currentFormId = form.id;
+      APP.Store.saveCharacter(character);
+
+      transcript.push({
+        role: 'shift',
+        content: (prev ? prev.name : character.name) + ' shifts into ' + form.name,
+      });
+      save();
+      renderAll();
+      els.title.textContent = titleFor(character, sessionId);
+      APP.Shapeshifter.renderList(character.id);
+
+      await this.generate([{
+        role: 'user',
+        content: '*(A transformation ripples through you. You shift from ' +
+          (prev ? prev.name : 'your previous form') + ' into ' + form.name + ': ' + form.essence +
+          '. Narrate the shift itself vividly and sensually in *asterisk* prose — the change of body, ' +
+          'texture, voice — then continue the scene as this new form, keeping everything between you intact.)*',
+      }]);
     },
 
     // Regenerate = add another variant you can swipe between (keeps the old one).

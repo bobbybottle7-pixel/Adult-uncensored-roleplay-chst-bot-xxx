@@ -1,7 +1,5 @@
 /* ============================================================
-   Roleplay Chat — v2 UI
-   Polished, modern dark theme. Class names preserved so the
-   existing JS keeps working; this is a visual overhaul.
+   Shapeshift — dark, modern theme for the shapeshifter chat app.
    ============================================================ */
 
 :root {
@@ -284,30 +282,6 @@ a:hover { text-decoration: underline; }
 .chk { display: flex !important; align-items: center; gap: 11px; color: var(--text) !important; font-weight: 600; cursor: pointer; padding: 4px 0; }
 .chk input { width: auto !important; margin: 0 !important; accent-color: var(--accent); width: 18px !important; height: 18px; }
 
-.dropzone {
-  border: 2px dashed var(--border-2); border-radius: var(--radius); padding: 30px 16px; text-align: center;
-  display: flex; flex-direction: column; align-items: center; gap: 10px; color: var(--text-dim);
-  transition: border-color .15s, background .15s;
-}
-.dropzone.is-drag { border-color: var(--accent); background: var(--accent-soft); }
-
-/* ---------- Character editor avatar ---------- */
-.cf-avatar { display: flex; flex-direction: column; align-items: center; gap: 12px; margin-bottom: 20px; }
-.cf-avatar__frame {
-  width: 116px; height: 116px; border-radius: 26px; overflow: hidden;
-  border: 2px solid var(--border-2); background: var(--bg-3); flex-shrink: 0; box-shadow: var(--shadow-sm);
-}
-.cf-avatar__img { width: 100%; height: 100%; object-fit: cover; }
-
-/* ---------- Gallery ---------- */
-.gallery__controls { padding: 16px 20px 4px; }
-#gallery-search {
-  width: 100%; background: var(--bg-1); border: 1px solid var(--border-2);
-  color: var(--text); border-radius: 12px; padding: 12px 15px 12px 40px; font: inherit;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%23726c88' stroke-width='2' viewBox='0 0 24 24'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m21 21-4.3-4.3'/%3E%3C/svg%3E");
-  background-repeat: no-repeat; background-position: 14px center;
-}
-#gallery-search:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
 .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 13px; }
 .chip {
   background: var(--bg-3); border: 1px solid var(--border); color: var(--text-dim);
@@ -317,36 +291,52 @@ a:hover { text-decoration: underline; }
 .chip:hover { color: var(--text); border-color: var(--border-2); }
 .chip.is-active { background: var(--accent-grad); border-color: transparent; color: #fff; box-shadow: 0 4px 14px -4px rgba(138,69,230,.6); }
 
-.gallery__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(172px, 1fr)); gap: 16px; }
-.gallery__rows { display: flex; flex-direction: column; gap: 26px; }
-.grow__title { font-weight: 800; font-size: 16px; margin: 0 0 12px; letter-spacing: -.01em; }
-.grow__track { display: flex; gap: 14px; overflow-x: auto; padding: 2px 2px 10px; scroll-snap-type: x proximity; }
-.gcard--row { width: 172px; flex: 0 0 172px; scroll-snap-align: start; }
+/* ---------- Shapeshifter: form picker ---------- */
+.form-tabs { margin-bottom: 16px; }
+.form-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px;
+  max-height: 46vh; overflow-y: auto; padding: 2px;
+}
+.form-card {
+  display: flex; align-items: center; gap: 12px; padding: 11px 12px;
+  background: var(--bg-1); border: 1px solid var(--border); border-radius: var(--radius-sm);
+  cursor: pointer; transition: border-color .14s ease, background .14s ease, transform .1s ease;
+}
+.form-card:hover { border-color: var(--border-2); transform: translateY(-1px); }
+.form-card.is-selected { border-color: var(--accent); background: var(--accent-soft); box-shadow: var(--glow); }
+.form-card__icon {
+  width: 42px; height: 42px; border-radius: 13px; flex-shrink: 0;
+  display: grid; place-items: center; color: #fff; font-size: 17px; box-shadow: var(--shadow-sm);
+}
+.form-card__icon--creature  { background: linear-gradient(135deg, #46d19e, #2f8f6f); }
+.form-card__icon--abstract  { background: linear-gradient(135deg, #8a45e6, #4a2f8f); }
+.form-card__icon--person    { background: linear-gradient(135deg, #4f8cff, #2f5fcf); }
+.form-card__icon--elemental { background: linear-gradient(135deg, #ff8a4c, #d24b4b); }
+.form-card__icon--mythic    { background: var(--accent-grad); }
+.form-card__icon--custom    { background: var(--bg-4); color: var(--text-dim); }
+.form-card__body { flex: 1; min-width: 0; }
+.form-card__name { font-weight: 700; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.form-card__cat  { font-size: 10.5px; color: var(--text-mute); letter-spacing: .08em; margin-top: 2px; font-weight: 700; }
+.form-card__dot {
+  width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; border: 2px solid var(--border-2); background: transparent;
+}
+.form-card.is-selected .form-card__dot { background: var(--accent); border-color: var(--accent); }
+.form-card--custom { border-style: dashed; }
 
-.gcard {
-  background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--radius);
-  overflow: hidden; display: flex; flex-direction: column;
-  transition: transform .16s ease, border-color .16s ease, box-shadow .16s ease;
+.boundary-note {
+  background: var(--bg-1); border: 1px solid var(--border); border-radius: var(--radius-sm);
+  padding: 13px 15px; margin-top: 16px; font-size: 13px; color: var(--text-dim); line-height: 1.5;
 }
-.gcard:hover { transform: translateY(-4px); border-color: var(--border-2); box-shadow: var(--shadow); }
-.gcard__imgwrap {
-  position: relative; width: 100%; aspect-ratio: 3/4;
-  display: grid; place-items: center;
-  background: var(--accent-grad); color: #fff; font-weight: 800; font-size: 34px;
+.boundary-note strong { color: var(--text); }
+
+/* Transformation divider in chat */
+.msgwrap--shift { align-items: center; margin: 10px 0; }
+.shift-divider {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--accent-soft); border: 1px solid rgba(210,75,166,.3); color: var(--accent);
+  font-size: 12.5px; font-weight: 700; letter-spacing: .01em;
+  padding: 7px 16px; border-radius: 30px;
 }
-.gcard__imgwrap::after {
-  content: ""; position: absolute; inset: 0; pointer-events: none;
-  background: linear-gradient(180deg, transparent 55%, rgba(11,10,16,.55) 100%);
-}
-.gcard__img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity .35s ease; }
-.gcard__imgwrap.is-loaded .gcard__img { opacity: 1; }
-.gcard__body { padding: 12px 13px 6px; flex: 1; }
-.gcard__name { font-weight: 700; font-size: 15px; letter-spacing: -.01em; }
-.gcard__meta { font-size: 11.5px; color: var(--text-mute); text-transform: capitalize; margin: 2px 0 7px; }
-.gcard__desc { font-size: 12.5px; color: var(--text-dim); line-height: 1.45;
-  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-.gcard__tags { font-size: 11px; color: var(--accent); margin-top: 9px; text-transform: capitalize; font-weight: 600; opacity: .9; }
-.gcard .btn { margin: 8px 11px 11px; font-size: 13px; padding: 9px; }
 
 /* ---------- Chat sessions list ---------- */
 .slist { display: flex; flex-direction: column; gap: 9px; }
@@ -385,12 +375,9 @@ a:hover { text-decoration: underline; }
   }
   .sidebar.is-open::after { opacity: 1; pointer-events: auto; }
   #sidebar-close, #sidebar-open { display: block; }
-  .gallery__grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
-  .gcard__name { font-size: 14px; }
   .welcome__inner h2 { font-size: 23px; }
 }
 @media (max-width: 480px) {
-  .gallery__grid { grid-template-columns: 1fr 1fr; gap: 10px; }
   .modal { padding: 10px; }
   .modal__body { padding: 16px; }
 }

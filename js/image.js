@@ -35,9 +35,10 @@
     if (userText && userText.trim()) {
       bits.push(userText.trim());
     } else {
-      bits.push('portrait of ' + (character.name || 'a person'));
+      const form = APP.Shapeshifter.avatarFor(character);
+      bits.push('portrait of ' + (character.name || 'a being') + ' in its current form');
       if (character.age) bits.push('adult, ' + character.age + ' years old');
-      if (character.appearance) bits.push(character.appearance);
+      if (form) bits.push(form.avatarPrompt || form.essence);
     }
     bits.push('adult, 18+, fictional character');
     if (s.styleSuffix) bits.push(s.styleSuffix);
@@ -130,26 +131,29 @@
     return String(name || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
   };
 
+  // Category -> avatar flavor for shapeshifter forms. Humanoid-leaning
+  // categories get the same glamour treatment as normal characters;
+  // creature/abstract/elemental lean into a dramatic portrait instead.
+  const SHIFT_FLAVOR = {
+    person:    'extremely sexy, alluring, seductive pose, curvy body, skimpy lingerie, lace, cleavage, boudoir, glamour lighting, full body, ',
+    mythic:    'extremely sexy, alluring hybrid form, curvy body, fantasy glamour, dramatic lighting, full body, ',
+    creature:  'striking creature portrait, sensual pose, dramatic cinematic lighting, full body, ',
+    elemental: 'glowing elemental being, sensual pose, dramatic cinematic lighting, full body, ',
+    abstract:  'surreal abstract entity, sensual pose, dreamlike glow, dramatic lighting, full body, ',
+  };
+
   APP.Image.avatarUrlFor = function (character) {
-    // Imported PNG cards carry their own artwork — use it directly.
-    if (character.avatarImage) return character.avatarImage;
-    // Pre-generated preset avatar file (fast, reliable), unless rerolled.
-    if (character.avatarFile && (character.avatarSeed == null || character.avatarSeed === '')) {
-      return character.avatarFile;
-    }
     const s = imgSettings();
-    const base = character.avatarPrompt || character.appearance ||
-                 ('portrait of ' + (character.name || 'a person'));
-    // Assistants get a clean sleek look; everyone else gets a sexy glamour shot.
-    const flavor = character.kind === 'assistant'
-      ? 'sleek, upper body, '
-      : 'extremely sexy, alluring, seductive pose, curvy body, skimpy lingerie, lace, cleavage, bare shoulders and midriff, boudoir, glamour lighting, full body, ';
-    const prompt = base + ', ' + flavor + 'adult, 18+, ' +
-                   (s.styleSuffix || 'highly detailed');
-    // Use an explicit reroll seed if the character has one, else a stable hash.
-    const seed = (character.avatarSeed != null && character.avatarSeed !== '')
-      ? character.avatarSeed
-      : hashSeed(String(character.id || character.name || base));
+    const form = APP.Shapeshifter.avatarFor(character);
+    const base = (form && (form.avatarPrompt || form.essence || form.name)) ||
+                 character.name || 'a shifting being';
+    const flavor = (form && SHIFT_FLAVOR[form.category]) || SHIFT_FLAVOR.person;
+    const prompt = base + ', ' + flavor + 'adult, 18+, ' + (s.styleSuffix || 'highly detailed');
+    // A form's own seed keeps its face stable across renders; falls back to
+    // a stable hash so even a brand-new being gets a consistent portrait.
+    const seed = (form && form.avatarSeed != null && form.avatarSeed !== '')
+      ? form.avatarSeed
+      : hashSeed(String((form && form.id) || character.id || base));
     // Force pollinations for avatars, and use the fast 'turbo' model — on
     // mobile, generating many avatars must be quick or they time out.
     return pollinationsUrl(prompt, { seed, width: 384, height: 384 },
