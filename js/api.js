@@ -29,7 +29,7 @@
       'Authorization': 'Bearer ' + settings.apiKey,
       'Content-Type': 'application/json',
       'HTTP-Referer': location.origin || 'https://localhost',
-      'X-Title': 'Roleplay Chat',
+      'X-Title': 'Shapeshift',
     };
   }
 

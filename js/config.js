@@ -3,7 +3,7 @@
 window.APP = window.APP || {};
 
 APP.config = {
-  storagePrefix: 'rpchat_',
+  storagePrefix: 'shapeshift_',
 
   // OpenRouter endpoint (models run on their servers, not your device).
   endpoint: 'https://openrouter.ai/api/v1/chat/completions',
@@ -69,22 +69,6 @@ APP.config = {
     customUrlTemplate: '',        // e.g. https://your-endpoint/gen?prompt={prompt}&key={key}
     customApiKey: '',
   },
-
-  // Curated rows shown in the gallery when not searching/filtering.
-  // Each row picks characters by kind or tag, in order.
-  featured: [
-    { title: '🤖 AI assistants',     kind: 'assistant', limit: 60 },
-    { title: '👯 Group chats (2+)',    tags: ['group'], limit: 12 },
-    { title: '🔥 Popular',            tags: ['romance', 'flirty', 'dominant'], limit: 12 },
-    { title: '💕 Romance',            tags: ['romance'] },
-    { title: '😈 Dominant',           tags: ['dominant', 'femdom'] },
-    { title: '🐉 Fantasy',            tags: ['fantasy', 'elf', 'orc', 'dragon', 'witch'] },
-    { title: '👻 Supernatural',       tags: ['supernatural', 'vampire', 'demon', 'monster'] },
-    { title: '🚀 Sci-fi',             tags: ['sci-fi', 'cyberpunk', 'alien', 'android'] },
-    { title: '🏠 Slice of life',      tags: ['slice of life', 'cozy', 'roommate'] },
-    { title: '🎀 Playful & flirty',   tags: ['playful', 'flirty', 'tsundere'] },
-    { title: '💋 Mature',             tags: ['mature', 'milf', 'dilf'] },
-  ],
 
   imageProviders: [
     { id: 'pollinations', label: 'Pollinations (free, no key, some filtering)' },

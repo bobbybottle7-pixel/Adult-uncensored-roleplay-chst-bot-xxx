@@ -1,24 +1,25 @@
-/* Shapeshifter beings.
+/* Shapeshifter beings — the whole app in one concept.
  *
- * A shapeshifter is a single continuous fictional consciousness that can
- * change form. Unlike a normal character (one fixed body), a shapeshifter
- * carries a permanent "essence" (personality/voice/history — the part of
- * them that never changes) plus a wardrobe of FORMS it can wear. You pick
- * a starting form in the creation wizard below; in chat, the 🌀 Shift
- * button (or the /shift command) lets the being transform on request —
- * the app narrates the transformation and keeps every memory intact.
+ * A being is a single continuous fictional consciousness that can change
+ * form. It carries a permanent "essence" (personality/voice/history — the
+ * part of it that never changes) plus a wardrobe of FORMS it can wear. You
+ * pick a starting form when you create it; in chat, the 🌀 Shift button (or
+ * the /shift command) lets it transform on request — the app narrates the
+ * transformation and keeps every memory intact.
  *
- * This file owns:
- *   - FORMS: the curated form library (creature / abstract / elemental /
- *     mythic / fictional person), each with flavor text used both in the
- *     system prompt and to seed a distinct generated avatar.
- *   - APP.Shapeshifter.openWizard()   — the "New shapeshifter" creation flow
- *   - APP.Shapeshifter.openShiftPicker(character) — the in-chat shift modal
- *   - APP.Shapeshifter.systemBlock(character) — prompt text for memory.js
- *   - APP.Shapeshifter.avatarPromptFor(character, form) — for image.js
+ * This file owns the entire lifecycle of a being:
+ *   - The sidebar list of your beings
+ *   - "Shape a new being" — pick a starter, or a bare form, or write your own
+ *   - "Edit" — rename, retune, or delete an existing being
+ *   - The in-chat 🌀 Shift picker
+ *   - systemBlock(character) — prompt text for memory.js
+ *   - avatarFor(character) — the active form, for image.js
  */
 (function () {
   function uid(p) { return (p || 'f_') + Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+  function initials(name) {
+    return (name || '?').trim().split(/\s+/).map(w => w[0]).slice(0, 2).join('').toUpperCase();
+  }
 
   const CATEGORIES = [
     { id: 'creature',  label: 'Creature',         blurb: 'An animal-born intelligence — fur, wing, scale or claw.' },
@@ -169,29 +170,27 @@
     return forms.find(f => f.id === character.currentFormId) || forms[0] || null;
   };
 
-  /* ================= UI: shared form-picker grid ================= */
-  function formCardEl(form, selected, onPick) {
+  /* ================= shared form-card grid (forms OR starters) ================= */
+  function cardEl({ icon, name, sub, selected, dashed }, onPick) {
     const el = document.createElement('div');
-    el.className = 'form-card' + (selected ? ' is-selected' : '');
+    el.className = 'form-card' + (selected ? ' is-selected' : '') + (dashed ? ' form-card--custom' : '');
     el.setAttribute('role', 'button');
     el.tabIndex = 0;
-    const cat = catInfo(form.category);
     el.innerHTML =
-      '<div class="form-card__icon form-card__icon--' + form.category + '"><span>◈</span></div>' +
+      '<div class="form-card__icon form-card__icon--' + icon + '"><span>◈</span></div>' +
       '<div class="form-card__body">' +
         '<div class="form-card__name"></div>' +
         '<div class="form-card__cat"></div>' +
       '</div>' +
       '<div class="form-card__dot"></div>';
-    el.querySelector('.form-card__name').textContent = form.name;
-    el.querySelector('.form-card__cat').textContent = cat.label.toUpperCase();
-    el.addEventListener('click', () => onPick(form));
-    el.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onPick(form); } });
+    el.querySelector('.form-card__name').textContent = name;
+    el.querySelector('.form-card__cat').textContent = sub;
+    el.addEventListener('click', onPick);
+    el.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onPick(); } });
     return el;
   }
 
-  // Renders a category-tabbed form grid into `container`. Calls onPick(form)
-  // when a card (or the custom-form card) is chosen. `extraForms` (a
+  // Renders a category-tabbed form grid into `container`. `extraForms` (a
   // character's own saved forms) are shown first, above the library.
   function renderFormGrid(container, { selectedId, extraForms, onPick, onCustom }) {
     container.innerHTML = '';
@@ -210,18 +209,14 @@
       const ownIds = new Set((extraForms || []).map(f => f.id));
       const own = (extraForms || []).filter(f => activeCat === 'all' || f.category === activeCat);
       const lib = FORMS.filter(f => (activeCat === 'all' || f.category === activeCat) && !ownIds.has(f.id));
-      own.forEach(f => grid.appendChild(formCardEl(f, f.id === selectedId, onPick)));
-      lib.forEach(f => grid.appendChild(formCardEl(f, f.id === selectedId, onPick)));
+      own.forEach(f => grid.appendChild(cardEl(
+        { icon: f.category, name: f.name, sub: catInfo(f.category).label.toUpperCase(), selected: f.id === selectedId },
+        () => onPick(f))));
+      lib.forEach(f => grid.appendChild(cardEl(
+        { icon: f.category, name: f.name, sub: catInfo(f.category).label.toUpperCase(), selected: f.id === selectedId },
+        () => onPick(f))));
       if (onCustom) {
-        const el = document.createElement('div');
-        el.className = 'form-card form-card--custom';
-        el.setAttribute('role', 'button');
-        el.tabIndex = 0;
-        el.innerHTML = '<div class="form-card__icon form-card__icon--custom"><span>+</span></div>' +
-          '<div class="form-card__body"><div class="form-card__name">Describe a form</div>' +
-          '<div class="form-card__cat">CUSTOM</div></div>';
-        el.addEventListener('click', onCustom);
-        grid.appendChild(el);
+        grid.appendChild(cardEl({ icon: 'custom', name: 'Describe a form', sub: 'CUSTOM', dashed: true }, onCustom));
       }
     }
 
@@ -252,79 +247,152 @@
     return { refresh: draw };
   }
 
-  /* ================= Creation wizard ================= */
+  // Renders the quick-start row (fully written beings) into `container`.
+  function renderStarterRow(container, { selectedName, onPick }) {
+    container.innerHTML = '';
+    (APP.starterBeings || []).forEach(s => {
+      const firstCat = s.forms[0].category;
+      container.appendChild(cardEl(
+        { icon: firstCat, name: s.name, sub: (s.tags || []).join(' · ').toUpperCase() || 'QUICK START',
+          selected: s.name === selectedName },
+        () => onPick(s)));
+    });
+  }
+
+  /* ================= Create / edit modal ================= */
   const wiz = {};
-  let wizPicked = null;
+  let wizPicked = null;      // a single bare form (library or custom)
+  let wizStarter = null;     // a full quick-start being (name/essence/scenario/tags/forms)
+  let editingId = null;      // set when the modal is in EDIT mode
 
   function wizSyncFromForm(form) {
     wizPicked = form;
+    wizStarter = null;
     if (!wiz.titleTouched) wiz.title.value = form.name;
     if (!wiz.essenceTouched) wiz.essence.value = form.essence;
-    wiz.grid && wiz.grid.refresh();
+    wiz.starterRow.refresh && wiz.starterRow.refresh();
+    wiz.grid.refresh();
   }
 
-  APP.Shapeshifter.initWizard = function ({ onCreated }) {
-    wiz.modal   = document.getElementById('ss-modal');
-    wiz.gridWrap= document.getElementById('ss-form-grid');
-    wiz.title   = document.getElementById('ss-title');
-    wiz.essence = document.getElementById('ss-essence');
-    wiz.age     = document.getElementById('ss-age');
-    wiz.scenario= document.getElementById('ss-scenario');
-    wiz.tags    = document.getElementById('ss-tags');
-    wiz.freedom = document.getElementById('ss-freedom');
-    wiz.create  = document.getElementById('ss-create');
-    wiz.cancel  = document.getElementById('ss-cancel');
-    wiz.close   = document.getElementById('ss-close');
+  function wizSyncFromStarter(starter) {
+    wizStarter = starter;
+    wizPicked = null;
+    if (!wiz.titleTouched) wiz.title.value = starter.name;
+    if (!wiz.essenceTouched) wiz.essence.value = starter.essence;
+    wiz.scenario.value = starter.scenario || '';
+    wiz.tags.value = (starter.tags || []).join(', ');
+    wiz.age.value = starter.age || 21;
+    wiz.freedom.value = starter.shiftFreedom || 'invited';
+    renderStarterRow(wiz.starterWrap, { selectedName: starter.name, onPick: wizSyncFromStarter });
+    wiz.grid.refresh();
+  }
+
+  APP.Shapeshifter.initWizard = function ({ onCreated, onSaved, onDeleted }) {
+    wiz.modal      = document.getElementById('ss-modal');
+    wiz.modalTitle = document.getElementById('ss-modal-title');
+    wiz.formSection= document.getElementById('ss-form-section');
+    wiz.starterWrap= document.getElementById('ss-starter-row');
+    wiz.gridWrap   = document.getElementById('ss-form-grid');
+    wiz.title      = document.getElementById('ss-title');
+    wiz.essence    = document.getElementById('ss-essence');
+    wiz.age        = document.getElementById('ss-age');
+    wiz.scenario   = document.getElementById('ss-scenario');
+    wiz.tags       = document.getElementById('ss-tags');
+    wiz.freedom    = document.getElementById('ss-freedom');
+    wiz.create     = document.getElementById('ss-create');
+    wiz.cancel     = document.getElementById('ss-cancel');
+    wiz.close      = document.getElementById('ss-close');
+    wiz.deleteBtn  = document.getElementById('ss-delete');
 
     wiz.title.addEventListener('input', () => { wiz.titleTouched = true; });
     wiz.essence.addEventListener('input', () => { wiz.essenceTouched = true; });
     wiz.cancel.addEventListener('click', () => { wiz.modal.hidden = true; });
     wiz.close.addEventListener('click', () => { wiz.modal.hidden = true; });
+    wiz.deleteBtn.addEventListener('click', () => {
+      if (!editingId) return;
+      const c = APP.Store.getCharacter(editingId);
+      if (!confirm('Delete ' + (c?.name || 'this being') + ' and all its chats/memory? This cannot be undone.')) return;
+      APP.Store.deleteCharacter(editingId);
+      wiz.modal.hidden = true;
+      if (onDeleted) onDeleted(editingId);
+    });
 
     wiz.create.addEventListener('click', () => {
-      if (!wizPicked) { APP.toast('Choose a starting form first.'); return; }
-      const title = wiz.title.value.trim() || wizPicked.name;
-      const essence = wiz.essence.value.trim() || wizPicked.essence;
+      const title = wiz.title.value.trim();
+      if (!title && !wizPicked && !wizStarter) { APP.toast('Give your being a name, or pick a starting point below.'); return; }
       const age = Math.max(18, parseInt(wiz.age.value, 10) || 21);
-      const form = cloneForm(wizPicked);
-      form.essence = essence; // let the user's tweaked essence drive this form too
+      const tags = wiz.tags.value.split(',').map(t => t.trim()).filter(Boolean);
+      const essence = wiz.essence.value.trim();
+      const scenario = wiz.scenario.value.trim();
+      const freedom = wiz.freedom.value || 'invited';
+
+      if (editingId) {
+        const c = APP.Store.getCharacter(editingId);
+        if (!c) return;
+        c.name = title || c.name;
+        c.age = age;
+        c.personality = essence || c.personality;
+        c.scenario = scenario;
+        c.tags = tags;
+        c.shiftFreedom = freedom;
+        APP.Store.saveCharacter(c);
+        wiz.modal.hidden = true;
+        if (onSaved) onSaved(c.id);
+        return;
+      }
+
+      if (!wizPicked && !wizStarter) { APP.toast('Choose a starting form first — or pick a quick start above.'); return; }
+
+      let forms, currentFormId;
+      if (wizStarter) {
+        forms = wizStarter.forms.map(f => cloneForm(f));
+        currentFormId = forms[Math.max(0, wizStarter.forms.findIndex(f => f.id === wizStarter.currentFormId))].id;
+      } else {
+        const form = cloneForm(wizPicked);
+        form.essence = essence || form.essence; // let the tweaked essence drive this form too
+        forms = [form];
+        currentFormId = form.id;
+      }
+
       const char = {
         id: 'c_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
-        name: title,
+        name: title || (wizStarter ? wizStarter.name : wizPicked.name),
         age,
         kind: 'shapeshifter',
-        gender: '',
-        appearance: '',
-        personality: essence,
-        scenario: wiz.scenario.value.trim(),
-        greeting: '',
-        avatarPrompt: '',
-        avatarImage: '',
-        avatarSeed: undefined,
-        avatarFile: '',
-        tags: wiz.tags.value.split(',').map(t => t.trim()).filter(Boolean).concat(['shapeshifter']),
-        forms: [form],
-        currentFormId: form.id,
-        shiftFreedom: wiz.freedom.value || 'invited',
+        gender: '', appearance: '', greeting: '',
+        avatarPrompt: '', avatarImage: '', avatarSeed: undefined, avatarFile: '',
+        personality: essence || (wizStarter ? wizStarter.essence : wizPicked.essence),
+        scenario,
+        tags,
+        forms, currentFormId,
+        shiftFreedom: freedom,
         createdAt: Date.now(),
       };
       APP.Store.saveCharacter(char);
       wiz.modal.hidden = true;
-      APP.toast(title + ' is ready to shift.');
+      APP.toast(char.name + ' is ready to shift.');
       if (onCreated) onCreated(char.id);
     });
   };
 
   APP.Shapeshifter.openWizard = function () {
+    editingId = null;
     wizPicked = null;
+    wizStarter = null;
     wiz.titleTouched = false;
     wiz.essenceTouched = false;
+    wiz.modalTitle.textContent = 'Shape a new being';
+    wiz.formSection.hidden = false;
+    wiz.deleteBtn.hidden = true;
+    wiz.create.textContent = 'Create';
     wiz.title.value = '';
     wiz.essence.value = '';
     wiz.age.value = 21;
     wiz.scenario.value = '';
     wiz.tags.value = '';
     wiz.freedom.value = 'invited';
+    wiz.starterRow = { refresh: () => renderStarterRow(wiz.starterWrap, { selectedName: null, onPick: wizSyncFromStarter }) };
+    wiz.starterRow.refresh();
     wiz.grid = renderFormGrid(wiz.gridWrap, {
       selectedId: null,
       onPick: (form) => wizSyncFromForm(form),
@@ -333,6 +401,27 @@
         if (text && text.trim()) wizSyncFromForm(customForm(text));
       },
     });
+    wiz.modal.hidden = false;
+  };
+
+  APP.Shapeshifter.openEditor = function (id) {
+    const c = APP.Store.getCharacter(id);
+    if (!c) return;
+    editingId = id;
+    wizPicked = null;
+    wizStarter = null;
+    wiz.titleTouched = true;   // editing existing values — never auto-overwrite
+    wiz.essenceTouched = true;
+    wiz.modalTitle.textContent = 'Edit ' + c.name;
+    wiz.formSection.hidden = true;   // forms are managed via the in-chat 🌀 Shift picker
+    wiz.deleteBtn.hidden = false;
+    wiz.create.textContent = 'Save';
+    wiz.title.value = c.name || '';
+    wiz.essence.value = c.personality || '';
+    wiz.age.value = c.age || 21;
+    wiz.scenario.value = c.scenario || '';
+    wiz.tags.value = (c.tags || []).join(', ');
+    wiz.freedom.value = c.shiftFreedom || 'invited';
     wiz.modal.hidden = false;
   };
 
@@ -372,5 +461,43 @@
       },
     });
     shift.modal.hidden = false;
+  };
+
+  /* ================= Sidebar list ================= */
+  const listEl = {};
+
+  APP.Shapeshifter.initList = function ({ onOpen }) {
+    listEl.list = document.getElementById('character-list');
+    listEl.onOpen = onOpen;
+  };
+
+  APP.Shapeshifter.renderList = function (activeId) {
+    const beings = APP.Store.getCharacters();
+    listEl.list.innerHTML = '';
+    beings.forEach(c => {
+      const item = document.createElement('div');
+      item.className = 'char-item' + (c.id === activeId ? ' is-active' : '');
+      const av = document.createElement('div');
+      av.className = 'char-item__avatar';
+      av.textContent = initials(c.name);
+      const img = document.createElement('img');
+      img.className = 'char-item__avatarimg';
+      img.alt = '';
+      img.loading = 'lazy';
+      img.onload = () => { av.textContent = ''; av.appendChild(img); };
+      img.onerror = () => {};
+      img.src = APP.Image.avatarUrlFor(c);
+      item.appendChild(av);
+      const info = document.createElement('div');
+      info.innerHTML = '<div class="char-item__name"></div><div class="char-item__meta"></div>';
+      item.appendChild(info);
+      item.querySelector('.char-item__name').textContent = c.name || 'Unnamed';
+      const form = APP.Shapeshifter.avatarFor(c);
+      const mem = APP.Store.getMemory(c.id);
+      item.querySelector('.char-item__meta').textContent =
+        (form ? form.name : 'age ' + (c.age || 18)) + (mem.summary ? ' · remembers you' : '');
+      item.addEventListener('click', () => listEl.onOpen(c.id));
+      listEl.list.appendChild(item);
+    });
   };
 })();

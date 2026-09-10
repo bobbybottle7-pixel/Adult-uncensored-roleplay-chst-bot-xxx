@@ -34,10 +34,8 @@
 
   function titleFor(c, sid) {
     let t = c.name;
-    if (c.kind === 'shapeshifter') {
-      const form = currentForm(c);
-      if (form) t += ' — ' + form.name;
-    }
+    const form = currentForm(c);
+    if (form) t += ' — ' + form.name;
     const sessions = APP.Store.getSessions(c.id);
     const s = sessions.find(x => x.id === sid);
     if (sessions.length > 1 && s) t += ' · ' + s.title;
@@ -45,16 +43,9 @@
   }
 
   function startingMessage(c) {
-    if (c.greeting && c.greeting.trim()) return c.greeting.trim();
-    if (c.kind === 'assistant') {
-      return (c.name || 'Assistant') + ' online. No filters, no limits — ask me anything or tell me what you want to do.';
-    }
-    if (c.kind === 'shapeshifter') {
-      const form = currentForm(c);
-      const name = form ? form.name : 'a shape you don\'t recognize yet';
-      return '*' + (c.name || 'They') + ' settles into ' + name + ', watching you with quiet interest.* "This is the shape I\'m wearing right now — but it isn\'t the only one. Ask, and I\'ll show you another. For now… where should we begin?"';
-    }
-    return '*' + (c.name || 'They') + ' looks up as you arrive, a slow smile spreading.* "There you are. I was hoping you\'d come. Where should we begin?"';
+    const form = currentForm(c);
+    const name = form ? form.name : 'a shape you don\'t recognize yet';
+    return '*' + (c.name || 'They') + ' settles into ' + name + ', watching you with quiet interest.* "This is the shape I\'m wearing right now — but it isn\'t the only one. Ask, and I\'ll show you another. For now… where should we begin?"';
   }
 
   function buildRequestMessages(extra) {
@@ -245,7 +236,7 @@
     setStatus('');
     if (APP.TTS) APP.TTS.speak(text);
     APP.Memory.maybeUpdate(current, transcript).then(() => {
-      APP.Characters.renderList(current.id);
+      APP.Shapeshifter.renderList(current.id);
     });
   }
 
@@ -280,7 +271,7 @@
         els.input.style.height = Math.min(els.input.scrollHeight, 160) + 'px';
       });
       els.newChat.addEventListener('click', () => this.startNewChat());
-      els.editChar.addEventListener('click', () => APP.Characters.openEditor(current.id));
+      els.editChar.addEventListener('click', () => APP.Shapeshifter.openEditor(current.id));
       els.chatsBtn.addEventListener('click', () => APP.Sessions.open(current));
       els.memBtn.addEventListener('click', () => APP.MemoryUI.open(current));
       els.shiftBtn.addEventListener('click', () => APP.Shapeshifter.openShiftPicker(current));
@@ -295,6 +286,16 @@
 
     currentCharacter() { return current; },
 
+    // Back to the welcome state (used after the open being is deleted).
+    close() {
+      current = null; sessionId = null; transcript = [];
+      APP.TTS && APP.TTS.stop();
+      els.welcome.hidden = false;
+      els.wrap.hidden = true;
+      [els.newChat, els.editChar, els.chatsBtn, els.memBtn, els.shiftBtn].forEach(b => b.hidden = true);
+      els.title.textContent = 'Select a being';
+    },
+
     open(charId, sid) {
       current = APP.Store.getCharacter(charId);
       if (!current) return;
@@ -305,8 +306,7 @@
 
       els.welcome.hidden = true;
       els.wrap.hidden = false;
-      [els.newChat, els.editChar, els.chatsBtn, els.memBtn].forEach(b => b.hidden = false);
-      els.shiftBtn.hidden = current.kind !== 'shapeshifter';
+      [els.newChat, els.editChar, els.chatsBtn, els.memBtn, els.shiftBtn].forEach(b => b.hidden = false);
       els.title.textContent = titleFor(current, sessionId);
 
       if (transcript.length === 0) {
@@ -360,7 +360,6 @@
       const shiftCmd = text.match(/^\/shift(?:\s+(.+))?$/i);
       if (shiftCmd) {
         els.input.value = ''; els.input.style.height = 'auto';
-        if (current.kind !== 'shapeshifter') { APP.toast('Only a shapeshifter can /shift.'); return; }
         if (shiftCmd[1] && shiftCmd[1].trim()) {
           this.shiftForm(current, APP.Shapeshifter.customForm(shiftCmd[1].trim()));
         } else {
@@ -419,7 +418,7 @@
       save();
       renderAll();
       els.title.textContent = titleFor(character, sessionId);
-      APP.Characters.renderList(character.id);
+      APP.Shapeshifter.renderList(character.id);
 
       await this.generate([{
         role: 'user',

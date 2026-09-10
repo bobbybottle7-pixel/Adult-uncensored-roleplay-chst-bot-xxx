@@ -155,10 +155,15 @@
   }
 
   // ---------- Sidebar (mobile) ----------
-  function openCharacter(id) {
+  function openBeing(id) {
     APP.Chat.open(id);
-    APP.Characters.renderList(id);
+    APP.Shapeshifter.renderList(id);
     els.sidebar.classList.remove('is-open');
+  }
+
+  function onDeletedBeing(id) {
+    if (APP.Chat.currentCharacter()?.id === id) APP.Chat.close();
+    APP.Shapeshifter.renderList();
   }
 
   // ---------- Boot ----------
@@ -191,21 +196,19 @@
     els.imgKey       = document.getElementById('set-imgkey');
 
     APP.Chat.init();
-    APP.Characters.init({
-      onOpenCharacter: openCharacter,
-      onListChanged: refreshKeyHint,
-    });
-    APP.Gallery.init();
-    APP.Importer.init();
     APP.Sessions.init();
     APP.MemoryUI.init();
-    APP.Shapeshifter.initWizard({ onCreated: openCharacter });
+    APP.Shapeshifter.initList({ onOpen: openBeing });
+    APP.Shapeshifter.initWizard({
+      onCreated: openBeing,
+      onSaved: openBeing,
+      onDeleted: onDeletedBeing,
+    });
     APP.Shapeshifter.initShiftPicker({ onShift: (character, form) => APP.Chat.shiftForm(character, form) });
+    APP.Shapeshifter.renderList();
 
-    document.getElementById('browse-btn').addEventListener('click', () => APP.Gallery.open());
-    document.getElementById('welcome-browse-btn').addEventListener('click', () => APP.Gallery.open());
-    document.getElementById('import-btn').addEventListener('click', () => APP.Importer.open());
     document.getElementById('new-shapeshifter-btn').addEventListener('click', () => APP.Shapeshifter.openWizard());
+    document.getElementById('welcome-new-btn').addEventListener('click', () => APP.Shapeshifter.openWizard());
 
     // Settings wiring
     document.getElementById('settings-btn').addEventListener('click', openSettings);
@@ -226,7 +229,7 @@
       r.onload = () => {
         try {
           const obj = JSON.parse(String(r.result));
-          if (!confirm('Restore this backup? It overwrites characters, chats and settings in this browser.')) return;
+          if (!confirm('Restore this backup? It overwrites beings, chats and settings in this browser.')) return;
           APP.Store.importAll(obj);
           location.reload();
         } catch (e) { APP.toast('That file is not a valid backup.'); }
@@ -240,12 +243,12 @@
       const blob = new Blob([JSON.stringify(APP.Store.exportAll(), null, 2)], { type: 'application/json' });
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
-      a.download = 'roleplay-backup.json';
+      a.download = 'shapeshift-backup.json';
       a.click();
       APP.toast('Backup downloaded.');
     });
     document.getElementById('wipe-data').addEventListener('click', () => {
-      if (confirm('Erase ALL characters, chats, memory and settings from this browser? This cannot be undone.')) {
+      if (confirm('Erase ALL beings, chats, memory and settings from this browser? This cannot be undone.')) {
         APP.Store.wipeAll();
         location.reload();
       }

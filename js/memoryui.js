@@ -19,7 +19,7 @@
         APP.Memory.setMemory(char.id, els.summary.value, facts);
         els.modal.hidden = true;
         APP.toast('Memory updated.');
-        APP.Characters.renderList(char.id);
+        APP.Shapeshifter.renderList(char.id);
       });
       document.getElementById('memory-forget').addEventListener('click', () => {
         if (!char) return;
@@ -29,7 +29,7 @@
         els.summary.value = '';
         els.facts.value = '';
         APP.toast(char.name + ' has forgotten everything.');
-        APP.Characters.renderList(char.id);
+        APP.Shapeshifter.renderList(char.id);
       });
     },
 

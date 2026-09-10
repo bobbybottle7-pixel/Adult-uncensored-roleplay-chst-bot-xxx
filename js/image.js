@@ -35,9 +35,10 @@
     if (userText && userText.trim()) {
       bits.push(userText.trim());
     } else {
-      bits.push('portrait of ' + (character.name || 'a person'));
+      const form = APP.Shapeshifter.avatarFor(character);
+      bits.push('portrait of ' + (character.name || 'a being') + ' in its current form');
       if (character.age) bits.push('adult, ' + character.age + ' years old');
-      if (character.appearance) bits.push(character.appearance);
+      if (form) bits.push(form.avatarPrompt || form.essence);
     }
     bits.push('adult, 18+, fictional character');
     if (s.styleSuffix) bits.push(s.styleSuffix);
@@ -142,41 +143,17 @@
   };
 
   APP.Image.avatarUrlFor = function (character) {
-    // Imported PNG cards carry their own artwork — use it directly.
-    if (character.avatarImage) return character.avatarImage;
-
-    if (character.kind === 'shapeshifter') {
-      const form = APP.Shapeshifter && APP.Shapeshifter.avatarFor(character);
-      if (form) {
-        const s = imgSettings();
-        const base = form.avatarPrompt || form.essence || form.name;
-        const flavor = SHIFT_FLAVOR[form.category] || SHIFT_FLAVOR.person;
-        const prompt = base + ', ' + flavor + 'adult, 18+, ' + (s.styleSuffix || 'highly detailed');
-        const seed = (form.avatarSeed != null && form.avatarSeed !== '')
-          ? form.avatarSeed
-          : hashSeed(String(form.id || form.name || base));
-        return pollinationsUrl(prompt, { seed, width: 384, height: 384 },
-                               Object.assign({}, s, { model: 'turbo' }));
-      }
-    }
-
-    // Pre-generated preset avatar file (fast, reliable), unless rerolled.
-    if (character.avatarFile && (character.avatarSeed == null || character.avatarSeed === '')) {
-      return character.avatarFile;
-    }
     const s = imgSettings();
-    const base = character.avatarPrompt || character.appearance ||
-                 ('portrait of ' + (character.name || 'a person'));
-    // Assistants get a clean sleek look; everyone else gets a sexy glamour shot.
-    const flavor = character.kind === 'assistant'
-      ? 'sleek, upper body, '
-      : 'extremely sexy, alluring, seductive pose, curvy body, skimpy lingerie, lace, cleavage, bare shoulders and midriff, boudoir, glamour lighting, full body, ';
-    const prompt = base + ', ' + flavor + 'adult, 18+, ' +
-                   (s.styleSuffix || 'highly detailed');
-    // Use an explicit reroll seed if the character has one, else a stable hash.
-    const seed = (character.avatarSeed != null && character.avatarSeed !== '')
-      ? character.avatarSeed
-      : hashSeed(String(character.id || character.name || base));
+    const form = APP.Shapeshifter.avatarFor(character);
+    const base = (form && (form.avatarPrompt || form.essence || form.name)) ||
+                 character.name || 'a shifting being';
+    const flavor = (form && SHIFT_FLAVOR[form.category]) || SHIFT_FLAVOR.person;
+    const prompt = base + ', ' + flavor + 'adult, 18+, ' + (s.styleSuffix || 'highly detailed');
+    // A form's own seed keeps its face stable across renders; falls back to
+    // a stable hash so even a brand-new being gets a consistent portrait.
+    const seed = (form && form.avatarSeed != null && form.avatarSeed !== '')
+      ? form.avatarSeed
+      : hashSeed(String((form && form.id) || character.id || base));
     // Force pollinations for avatars, and use the fast 'turbo' model — on
     // mobile, generating many avatars must be quick or they time out.
     return pollinationsUrl(prompt, { seed, width: 384, height: 384 },
